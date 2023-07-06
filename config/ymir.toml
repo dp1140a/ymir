@@ -1,0 +1,29 @@
+printConfig = false
+
+[logging]
+traceLogging = true
+logFile = "./vinduino.log"
+
+[db]
+host = "localhost"
+port = "5984"
+username = "admin"
+password = "password"
+dbName="ymir"
+
+[http]
+hostname = "0.0.0.0"
+port = "8082"
+usehttps = false
+TLSMinVersion = "1.2"
+HttpTLSStrictCiphers = false
+TLSCert = ".vinduino/vinduino.crt"
+TLSKey = ".vinduino/vinduino.key"
+enableCORS = false
+JWTSecret = "abc123"
+
+[http.logging]
+enabled = true
+stdout = true
+fileout = true
+logfile = "./vinduino_http.log"
