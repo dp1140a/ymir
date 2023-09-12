@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" href="%sveltekit.assets%/favicon.png" />
+		<meta name="viewport" content="width=device-width" />
+		%sveltekit.head%
+
+		<!-- Font Awesome -->
+		<!-- https://fontawesome.com/docs/web/setup/host-yourself/webfonts -->
+		<link href="/font-awesome/css/fontawesome.min.css" rel="stylesheet" />
+		<link href="/font-awesome/css/regular.min.css" rel="stylesheet" />
+		<link href="/font-awesome/css/solid.min.css" rel="stylesheet" />
+		<link href="/font-awesome/css/brands.min.css" rel="stylesheet" />
+		<link rel="stylesheet" href="/style.css" />
+		<link rel="stylesheet" href="/filepond.css" />
+	</head>
+	<!-- https://kit.svelte.dev/docs/link-options#data-sveltekit-preload-data -->
+	<body data-sveltekit-preload-data="tap" data-theme="custom">
+		<div style="display: contents" class="h-full overflow-hidden">%sveltekit.body%</div>
+	</body>
+</html>

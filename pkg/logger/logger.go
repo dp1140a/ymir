@@ -18,7 +18,16 @@ type Logger struct {
 	Config *LoggerConfig
 }
 
-var logger *Logger
+var (
+	logger   *Logger
+	logLevel = map[string]log.Level{
+		"DEBUG": log.DebugLevel,
+		"INFO":  log.InfoLevel,
+		"WARN":  log.WarnLevel,
+		"ERROR": log.ErrorLevel,
+		"FATAL": log.FatalLevel,
+	}
+)
 
 func init() {
 	logger = NewLogger()
@@ -33,14 +42,10 @@ func NewLogger() *Logger {
 func InitLogger() (err error) {
 	logger.Config = NewLoggerConfig()
 
-	//fmt.Println(logger.Config.String())
+	//Set Log Level
+	log.SetLevel(logLevel[logger.Config.LogLevel])
 
-	var logLevel = log.InfoLevel
-	if logger.Config.TraceLogging == true {
-		logLevel = log.TraceLevel
-	}
-	log.SetLevel(logLevel)
-
+	// Set Log Formatter
 	log.SetFormatter(&log.JSONFormatter{
 		TimestampFormat:   time.RFC3339,
 		DisableTimestamp:  false,

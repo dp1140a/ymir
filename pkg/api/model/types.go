@@ -1,30 +1,38 @@
 package model
 
 import (
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/google/uuid"
+	log "github.com/sirupsen/logrus"
 )
 
 type Tags string
 
 type Model struct {
-	Id          string         `json:"_id"`
-	Rev         string         `json:"_rev"`
-	DisplayName string         `json:"displayName"`
-	Tags        []Tags         `json:"tags,omitempty"`
-	Files       []FileType     `json:"files,omitempty"`
-	DateCreated time.Time      `json:"dateCreated"`
+	Id          string         `json:"_id,omitempty"`
+	Rev         string         `json:"_rev,omitempty"`
+	DisplayName string         `json:"displayName,omitempty"`
+	Tags        []Tags         `json:"tags"`
+	BasePath    string         `json:"basePath,omitempty"`
+	ModelFiles  []FileType     `json:"modelFiles"`
+	PrintFiles  []FileType     `json:"printFiles"`
+	OtherFiles  []FileType     `json:"otherFiles"`
+	Images      []FileType     `json:"images"`
+	DateCreated time.Time      `json:"dateCreated,omitempty"`
 	VersionLog  []ModelVersion `json:"versionLog,omitempty"`
 	Description string         `json:"description,omitempty"`
+	Summary     string         `json:"summary,omitempty"`
 	Notes       []Note         `json:"notes,omitempty"`
 }
 
 type FileType struct {
-	Name string `json:"name"`
-	Path string `json:"path"`
+	Path string `json:"path,omitempty"`
 }
 
 type ModelVersion struct {
@@ -46,7 +54,7 @@ func testModel(num int) string {
 		Rev:         "",
 		DisplayName: fmt.Sprintf("test%v", num),
 		Tags:        []Tags{"tag1", "tag2"},
-		Files:       []FileType{{"file1", "./file1"}, {"file2", "./file2"}},
+		//Files:       []FileType{{"file1", "./file1"}, {"file2", "./file2"}},
 		DateCreated: time.Now(),
 		VersionLog:  nil,
 		Description: "A test model for testing",
@@ -55,4 +63,26 @@ func testModel(num int) string {
 
 	bytes, _ := json.MarshalIndent(m, "", "\t")
 	return string(bytes)
+}
+
+func (m *Model) WriteModel(dir string) error {
+	modelJSON := []byte(m.Json())
+	if err := os.WriteFile(filepath.Join(dir, "model.json"), modelJSON, 0664); err != nil {
+		log.Error(err)
+		return err
+	}
+	return nil
+}
+
+func (m *Model) Json() string {
+	data, _ := json.MarshalIndent(m, "", "\t")
+	return string(data)
+}
+
+func GenId() string {
+	buf := make([]byte, 8)
+	// then we can call rand.Read.
+	_, _ = rand.Read(buf)
+
+	return fmt.Sprintf("%x", buf)
 }

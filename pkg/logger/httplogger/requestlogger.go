@@ -21,16 +21,17 @@ func NewStructuredLogger(logger *logrus.Logger, config *HttpLoggerConfig) func(n
 	var sol io.Writer
 	var f io.Writer
 	var err error
-	logger.Info("Console Log Enabled: ", config.StdOut)
+
 	if config.StdOut != true {
-		sol = ioutil.Discard
+		sol = io.Discard
 	} else {
 		sol = os.Stdout
+		logger.Info("http console log enabled")
 	}
 
-	logger.Info("File Log Enabled: ", config.FileOut)
 	if config.FileOut == true {
-		logger.Info("File Log Name: ", config.LogFile)
+		logger.Info("http file log enabled")
+		logger.Info("http log file name: ", config.LogFile)
 		f, err = os.OpenFile(config.LogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			logger.Fatal("Log Error: ", err)

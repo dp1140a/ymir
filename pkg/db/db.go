@@ -11,7 +11,7 @@ import (
 
 type DB struct {
 	config *DBConfig
-	Client *kivik.Client
+	Client *kivik.Client //https://github.com/go-kivik
 }
 
 func NewDB() *DB {

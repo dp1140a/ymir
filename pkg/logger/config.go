@@ -12,8 +12,8 @@ const (
 )
 
 type LoggerConfig struct {
-	TraceLogging bool   `json:"traceLogging" toml:"traceLogging"`
-	LogFile      string `json:"logFile" toml:"logFile"`
+	LogFile  string `json:"logFile" toml:"logFile"`
+	LogLevel string `json:"logLevel" toml:"logLevel"`
 }
 
 //New

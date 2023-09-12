@@ -1,4 +1,4 @@
-package main
+package gcode
 
 import (
 	"bufio"
@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"image"
-	"image/jpeg"
 	"image/png"
 	"os"
 	"strconv"
@@ -24,23 +23,18 @@ type GCode struct {
 }
 
 type GCodeMetaData struct {
-	GCodeType      string      `json:"gCodeType,omitempty"`
-	CreatedBy      string      `json:"createdBy,omitempty"`
-	CreatedDate    string      `json:"createDate,omitempty"`
-	TotalTime      string      `json:"totalTime,omitempty"`
-	LayerHeight    string      `json:"layerHeight,omitempty"`
-	NozzleDiameter string      `json:"nozzleDiameter,omitempty"`
-	Material       string      `json:"material,omitempty"`
-	FilamentUsedG  string      `json:"filamentUsedG,omitempty"`
-	FilamentUsedM  string      `json:"filamentUsedM,omitempty"`
-	PrinterType    string      `json:"printerType,omitempty"`
-	Thumbnail      image.Image `json:"thumbnail,omitempty"`
+	GCodeType      string `json:"gCodeType,omitempty"`
+	CreatedBy      string `json:"createdBy,omitempty"`
+	CreatedDate    string `json:"createDate,omitempty"`
+	TotalTime      string `json:"totalTime,omitempty"`
+	LayerHeight    string `json:"layerHeight,omitempty"`
+	NozzleDiameter string `json:"nozzleDiameter,omitempty"`
+	Material       string `json:"material,omitempty"`
+	FilamentUsedG  string `json:"filamentUsedG,omitempty"`
+	FilamentUsedM  string `json:"filamentUsedM,omitempty"`
+	PrinterType    string `json:"printerType,omitempty"`
+	Thumbnail      string `json:"thumbnail,omitempty"`
 }
-
-var path = "/home/dave/Documents/Tech/3D Prints/Enclosure Filament Gromet"
-
-// var file = "FilamentGrommet_0.15mm_PETG_MK3S_16m.gcode"
-var file = "PI3MK3M_FilamentGrommet.gcode"
 
 func NewGCode(filePath string) *GCode {
 	return &GCode{
@@ -49,7 +43,7 @@ func NewGCode(filePath string) *GCode {
 	}
 }
 
-func (gc *GCode) ParseGCode() error {
+func (gc *GCode) ParseGCode(debug bool) error {
 	log.Infof("Parsing Gcode file: %v", gc.FilePath)
 	// first open the file
 	file, err := os.Open(gc.FilePath)
@@ -76,8 +70,10 @@ func (gc *GCode) ParseGCode() error {
 		}
 	}
 
-	bytes, err := json.MarshalIndent(gc.MetaData, "", "\t")
-	fmt.Println(string(bytes))
+	if debug {
+		bytes, _ := json.MarshalIndent(gc.MetaData, "", "\t")
+		fmt.Println(string(bytes))
+	}
 
 	return nil
 }
@@ -98,20 +94,9 @@ func (gc *GCode) ParsePrusa(scanner *bufio.Scanner) error {
 		if strings.HasPrefix(line, ";") { //Its a Comment Line
 			line = strings.TrimSpace(line[1:])
 			if strings.HasPrefix(line, "thumbnail begin") {
-				endLine, thumbNail, err := ExtractThumbnail(scanner, lineNumber)
-				if err != nil {
-					log.Errorf("Cannot extract Thumbnail: %v", err)
-				}
+				thumbNail, endLine := ExtractThumbnail(scanner, lineNumber)
 				lineNumber = endLine
-				f, err := os.Create(fmt.Sprintf("%s/%s", path, "img.jpg"))
-				if err != nil {
-					return err
-				}
-				defer f.Close()
-				if err = jpeg.Encode(f, thumbNail, nil); err != nil {
-					log.Errorf("failed to encode: %v", err)
-					return err
-				}
+				gc.MetaData.Thumbnail = fmt.Sprintf("data:image/png;base64,%s", thumbNail)
 			} else {
 				kv := strings.Split(line, "=")
 				switch strings.TrimSpace(kv[0]) {
@@ -143,7 +128,20 @@ func (gc *GCode) ParsePrusa(scanner *bufio.Scanner) error {
 	return nil
 }
 
-func ExtractThumbnail(scanner *bufio.Scanner, startLine int) (endLine int, thumbnail image.Image, err error) {
+func B64ToImg(b64Str string) (thumbnail image.Image, err error) {
+	unbased, err := base64.StdEncoding.DecodeString(b64Str)
+	if err != nil {
+		return nil, errors.New("\"Cannot decode b64\"")
+	}
+	r := bytes.NewReader(unbased)
+	thumbnail, err = png.Decode(r)
+	if err != nil {
+		return nil, errors.New("not a png")
+	}
+	return
+}
+
+func ExtractThumbnail(scanner *bufio.Scanner, startLine int) (b64Str string, endline int) {
 	var sb strings.Builder
 	for scanner.Scan() {
 		startLine++
@@ -155,17 +153,7 @@ func ExtractThumbnail(scanner *bufio.Scanner, startLine int) (endLine int, thumb
 		}
 	}
 
-	unbased, err := base64.StdEncoding.DecodeString(sb.String())
-	if err != nil {
-		return startLine, nil, errors.New("\"Cannot decode b64\"")
-	}
-	r := bytes.NewReader(unbased)
-	im, err := png.Decode(r)
-	if err != nil {
-		return startLine, nil, errors.New("Not a png")
-	}
-
-	return startLine, im, nil
+	return sb.String(), startLine
 }
 
 func (gc *GCode) ParseMarlin(scanner *bufio.Scanner) error {

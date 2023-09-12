@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"ymir/front"
 	"ymir/pkg"
 	"ymir/pkg/api"
+	"ymir/pkg/api/model"
 	"ymir/pkg/logger/httplogger"
 
 	chiprometheus "github.com/766b/chi-prometheus"
@@ -56,19 +58,20 @@ func NewServer() (*Server, error) {
 	s.Router.Use(middleware.Compress(5, "text/html", "application/json"))
 
 	if s.Config.EnableCORS {
+		log.Info("Enabling CORS")
 		s.Router.Use(corsConfig().Handler)
 	}
 
 	//Init Handlers and Services
 	s.Router.Mount(fmt.Sprintf("%s/debug", _API_VERSION), middleware.Profiler())
-	//s.Handlers = append(s.Handlers, user.NewUserHandler(s.tokenAuth))
+	s.Handlers = append(s.Handlers, model.NewModelHandler())
 
-	//Append the base services Last
+	//Append the base and static handlers Last
 	s.Handlers = append(s.Handlers, api.NewBaseHandler(s.HttpLogger, s.Router))
+	s.Router.Mount(_API_VERSION, s.registerRoutes()) // base
 
-	s.Router.Mount(_API_VERSION, s.registerRoutes())
-
-	s.Router.HandleFunc("/", api.RootHandler)
+	s.Router.Mount("/", front.StaticHandler("/"))
+	//s.Router.Handle("/admin", frontend.SvelteKitHandler("/admin")) //static
 
 	return s, nil
 }
@@ -148,9 +151,11 @@ func corsConfig() *cors.Cors {
 		AllowedOrigins: []string{"https://*", "http://*"},
 		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token", "X-Sveltekit-Action"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
 		MaxAge:           86400, // Maximum value not ignored by any of major browsers
+		//OptionsPassthrough: true,
+		//Debug: true,
 	})
 }

@@ -23,7 +23,7 @@ var dbCmd = &cobra.Command{
 	Long:  `Database Command.  All params necessary are taken form the config used.  Either the default config or the config file specified as a global flag`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if slices.Contains(actionValues, Action) {
-			run()
+			runDB()
 
 		} else {
 			fmt.Printf("%s is not a valid action.\n", Action)
@@ -37,7 +37,7 @@ func init() {
 	dbCmd.Flags().StringVarP(&Action, "action", "a", "create", "Database action to take [\"create\", \"drop\", \"export\", \"import\", \"truncate\"].  default: create")
 }
 
-func run() {
+func runDB() {
 	db := db2.NewDB()
 	db.Connect()
 

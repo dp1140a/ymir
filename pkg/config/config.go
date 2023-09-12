@@ -26,6 +26,10 @@ username = "admin"
 password = "password"
 dbName = "ymir"
 
+[models]
+uploadsTempDir="uploads/tmp"
+uploadsFilesDir="uploads/modelFiles"
+
 [http]
 hostname = "0.0.0.0"
 port = "8081"
@@ -34,7 +38,7 @@ TLSMinVersion = "1.2"
 HttpTLSStrictCiphers = false
 TLSCert = "ymir.crt"
 TLSKey = "ymir.key"
-enableCORS = false
+enableCORS = true
 JWTSecret = "abc123"
 
 [http.logging]
@@ -80,7 +84,6 @@ func InitConfig() {
 		}
 	}
 
-	fmt.Println(viper.GetString("printConfig"))
 	if viper.GetBool("printConfig") {
 		fmt.Println(Toml())
 	}

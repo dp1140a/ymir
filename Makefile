@@ -57,6 +57,7 @@ build: tidy fmt
 	@echo "$(LDFLAGS)"
 	@echo "  $(M)  Checking if there is any missing dependencies...\n"
 	@$(MAKE) deps
+	#go generate ./...
 	@echo "  $(M)  Building...\n"
 	#@echo "GOBIN: $(GOBIN)"
 	$(GOBIN)/gox -arch="$(ARCHES)" -os="$(OSES)" -output="$(OUTTPL)/{{.Dir}}" \

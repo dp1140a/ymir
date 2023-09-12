@@ -73,7 +73,7 @@ func (bh BaseHandler) GetPrefix() string {
 }
 
 /*
-*
+This will eventually become the static file handler for the frontend
 GET /  (200) -- Returns "OK"
 */
 func RootHandler(w http.ResponseWriter, _ *http.Request) {

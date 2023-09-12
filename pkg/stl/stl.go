@@ -1,85 +1,115 @@
-package main
+package stl
 
 import (
+	"bytes"
+	"encoding/base64"
+	"errors"
 	"fmt"
+	"image"
+	"image/jpeg"
+	"image/png"
 	"os"
 	"path/filepath"
 	"strings"
 
 	. "github.com/fogleman/fauxgl"
+	"github.com/nfnt/resize"
 	log "github.com/sirupsen/logrus"
 )
 
 const (
-	width  = 1000
-	height = 1000
+	width  = 640
+	height = 480
 	fovy   = 40
 	near   = 1
 	far    = 50
 )
 
 var (
-	eye    = V(-2.5, 2.5, 2.5) // camera position
-	center = V(0, 0, 0)        // view center position
+	eye    = V(.75, 2, 3) // camera position
+	center = V(0, 0, 0)   // view center position
 	up     = V(0, 1, 0)
 
-	basePath = "/home/dave/Documents/Tech/3D Prints"
 	//file     = "FilamentGrommet"
 	outPath = fmt.Sprintf("%s/images", basePath)
 	files   = []string{}
 )
 
-func main() {
-	GetFiles()
-	fmt.Println(outPath)
-	for _, v := range files {
-		err := os.MkdirAll(fmt.Sprintf("%s/%s", outPath, filepath.Dir(v)), os.ModePerm)
-		if err != nil {
-			log.Println(err)
-		}
-		DrawImage(v)
-	}
-}
-
-func DrawImage(fileName string) {
-	fmt.Printf("Opening: %s", fmt.Sprintf("%s/%s\n", basePath, fileName))
-	mesh, err := LoadSTL(fmt.Sprintf("%s/%s", basePath, fileName))
-	if err != nil {
-		fmt.Errorf(err.Error())
-		panic(err)
-	}
-	mesh.BiUnitCube()
-	mesh.SmoothNormalsThreshold(Radians(30))
-
-	context := NewContext(int(width*mesh.BoundingBox().Size().X), int(height*mesh.BoundingBox().Size().Y))
-	context.ClearColor = Black
-	context.ClearColorBuffer()
-
-	aspect := float64(width) / float64(height)
-	matrix := LookAt(eye, center, up).Perspective(fovy, aspect, near, far)
-	light := V(-2, 0, 1).Normalize()
-	color := Color{0, 0.5, 0.65, 1}
-
-	shader := NewPhongShader(matrix, light, eye)
-	shader.ObjectColor = color
-	context.Shader = shader
-	context.DrawMesh(mesh)
-
-	outFile := fmt.Sprintf("%s/%s.png", outPath, fileName)
-	err = SavePNG(outFile, context.Image())
-
+func SaveImage(path string, image image.Image) {
+	err := SavePNG(path, image)
 	if err != nil {
 		fmt.Errorf("Write Error: %v\n", err.Error())
 		os.Exit(12)
 
 	} else {
-		fmt.Printf("Drew: %s\n", outFile)
+		fmt.Printf("Drew: %s\n", path)
 	}
-
 }
 
-func GetFiles() {
+func Image(fileName string) image.Image {
+	log.Infof("creating image from %s", fileName)
+	mesh, err := LoadSTL(fileName)
+	if err != nil {
+		log.Errorf(err.Error())
+		panic(err)
+	}
+	mesh.BiUnitCube()
+	mesh.SmoothNormalsThreshold(Radians(2))
 
+	context := NewContext(int(width*mesh.BoundingBox().Size().X), int(height*mesh.BoundingBox().Size().Y))
+	context.ClearColor = Color{0.5, 0.5, 0.5, 0}
+	context.ClearColorBuffer()
+
+	aspect := float64(width) / float64(height)
+	matrix := LookAt(eye, center, up).Perspective(fovy, aspect, near, far)
+	light := V(2, 2, 2).Normalize()
+	color := Color{.65, 0.24, 0.14, 1}
+
+	shader := NewPhongShader(matrix, light, eye)
+	shader.ObjectColor = color
+	context.Shader = shader
+	shader.AmbientColor = Color{0.6, 0.6, 0.6, 1}
+	context.DrawMesh(mesh)
+
+	return context.Image()
+}
+
+func Thumbnail(srcImage image.Image, maxHeight uint, maxWidth uint) image.Image {
+	return resize.Thumbnail(maxWidth, maxHeight, srcImage, resize.Bilinear)
+}
+
+func ThumbnailBase64(srcImage image.Image, maxHeight uint, maxWidth uint) string {
+	img := Thumbnail(srcImage, maxHeight, maxWidth)
+	buf := new(bytes.Buffer)
+	err := png.Encode(buf, img)
+	if err != nil {
+		log.Error(err)
+	}
+
+	return fmt.Sprintf("data:image/png;base64, %s", base64.StdEncoding.EncodeToString(buf.Bytes()))
+}
+
+func Png(image image.Image) ([]byte, error) {
+	buf := new(bytes.Buffer)
+	if err := png.Encode(buf, image); err != nil {
+		log.Error(err)
+		return nil, errors.New("unable to encode png")
+	}
+
+	return buf.Bytes(), nil
+}
+
+func JPG(image image.Image) ([]byte, error) {
+	buf := new(bytes.Buffer)
+	if err := jpeg.Encode(buf, image, nil); err != nil {
+		log.Error(err)
+		return nil, errors.New("unable to encode jpg")
+	}
+
+	return buf.Bytes(), nil
+}
+
+func GetFiles(basePath string) {
 	filepath.Walk(basePath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			log.Fatalf(err.Error())
@@ -95,5 +125,4 @@ func GetFiles() {
 
 		return nil
 	})
-
 }
