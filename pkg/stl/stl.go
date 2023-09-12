@@ -38,7 +38,7 @@ var (
 func SaveImage(path string, image image.Image) {
 	err := SavePNG(path, image)
 	if err != nil {
-		fmt.Errorf("Write Error: %v\n", err.Error())
+		_ = fmt.Errorf("Write Error: %v\n", err.Error())
 		os.Exit(12)
 
 	} else {
@@ -57,18 +57,18 @@ func Image(fileName string) image.Image {
 	mesh.SmoothNormalsThreshold(Radians(2))
 
 	context := NewContext(int(width*mesh.BoundingBox().Size().X), int(height*mesh.BoundingBox().Size().Y))
-	context.ClearColor = Color{0.5, 0.5, 0.5, 0}
+	context.ClearColor = Color{R: 0.5, G: 0.5, B: 0.5}
 	context.ClearColorBuffer()
 
 	aspect := float64(width) / float64(height)
 	matrix := LookAt(eye, center, up).Perspective(fovy, aspect, near, far)
 	light := V(2, 2, 2).Normalize()
-	color := Color{.65, 0.24, 0.14, 1}
+	color := Color{R: .65, G: 0.24, B: 0.14, A: 1}
 
 	shader := NewPhongShader(matrix, light, eye)
 	shader.ObjectColor = color
 	context.Shader = shader
-	shader.AmbientColor = Color{0.6, 0.6, 0.6, 1}
+	shader.AmbientColor = Color{R: 0.6, G: 0.6, B: 0.6, A: 1}
 	context.DrawMesh(mesh)
 
 	return context.Image()

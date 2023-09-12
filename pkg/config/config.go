@@ -75,7 +75,7 @@ func InitConfig() {
 		fmt.Printf("Using config file: %s\n", viper.ConfigFileUsed())
 	} else {
 		if e, ok := err.(viper.ConfigParseError); ok { //Config Parsing Error
-			fmt.Errorf("error parsing config file: %v\n", e)
+			_ = fmt.Errorf("error parsing config file: %v\n", e)
 			//log.Fatal("Exiting!")
 		} else if _, ok := err.(*fs.PathError); ok {
 			fmt.Printf("Config File Specified at %v Not Found.  Continuing with defaults.\n", cfgFile)
@@ -92,14 +92,14 @@ func InitConfig() {
 func loadDefaults() {
 	err := viper.ReadConfig(bytes.NewBuffer(defaultConfig))
 	if err != nil {
-		fmt.Errorf("%v", err)
+		_ = fmt.Errorf("%v", err)
 	}
 }
 
 func Json() (config string) {
 	cb, err := json.MarshalIndent(viper.AllSettings(), "", "   ")
 	if err != nil {
-		fmt.Errorf("%v", err)
+		_ = fmt.Errorf("%v", err)
 		os.Exit(-1)
 	}
 	return string(cb)
@@ -109,7 +109,7 @@ func Toml() (config string) {
 	buf := new(bytes.Buffer)
 	err := toml.NewEncoder(buf).Encode(viper.AllSettings())
 	if err != nil {
-		fmt.Errorf("%v", err)
+		_ = fmt.Errorf("%v", err)
 		os.Exit(-1)
 	}
 	return buf.String()

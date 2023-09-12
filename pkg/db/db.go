@@ -48,6 +48,7 @@ func (db *DB) CreateDB() {
 }
 
 func (db *DB) Connect() {
+	//goland:noinspection HttpUrlsUsage
 	client, err := kivik.New("couch", fmt.Sprintf("http://%s:%s", db.config.Host, db.config.Port))
 	if err != nil {
 		log.Fatal(err)
