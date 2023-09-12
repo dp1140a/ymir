@@ -32,11 +32,13 @@
 		<p>
 			While I love what the folks at Prusa (and Free3D) are doing, I created Ymir for a few reasons.
 			First I am selfish and dont want to share my models with the whole world. Second I wanted a
-			model manager that can tie into my printer and print directly to (yes I know about Octoprint.
-			More on that later.) but that was not tied to a specific printer brand like printables.com is.
-			I get why they do that and Im cool with it. In fact I own a Prusa printer myself. But im
-			looking at it and I actually own a Prusa printer but a lot of folks dont. Plus Im pretty sure
-			my next printer is gonna be a Voron. Additionally I wanted something I could run locally and
+			model manager that can tie into my printer and print directly to it (yes I know about Octoprint.
+			More on that later). I also did not want it to be tied to a specific printer brand like printables.com is.
+			Right now Ymir will only connect to printers using OctoPrint.
+		</p>
+		<p>
+			I get why Prusa does that and Im cool with it. In fact I own a Prusa printer myself. But a lot of folks dont.
+			Plus Im pretty sure my next printer is gonna be a Voron. Lastly I wanted something I could run locally and
 			not have to create an account on.
 		</p>
 		<p class="mb-4">
