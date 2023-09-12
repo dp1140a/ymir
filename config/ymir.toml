@@ -12,14 +12,14 @@ password = "password"
 dbName = "ymir"
 
 [models]
-uploadsTempDir="/home/dave/Git/ymir/uploads/tmp"
-modelsDir="/home/dave/Git/ymir/uploads/modelFiles"
+uploadsTempDir="uploads/tmp"
+modelsDir="uploads/modelFiles"
 
 [printer]
-host=""
+host="127.0.0.1"
 type="Prusa Mk3S+"
 apiType="octoprint"
-apikey="D99225270941472A9C349F829F35E43C"
+apikey="ABC123"
 
 [http]
 hostname = "0.0.0.0"
