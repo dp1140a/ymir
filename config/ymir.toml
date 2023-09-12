@@ -1,29 +1,39 @@
 printConfig = false
 
 [logging]
-traceLogging = true
-logFile = "./vinduino.log"
+logFile = "log/ymir.log"
+logLevel="ERROR"
 
 [db]
 host = "localhost"
 port = "5984"
 username = "admin"
 password = "password"
-dbName="ymir"
+dbName = "ymir"
+
+[models]
+uploadsTempDir="/home/dave/Git/ymir/uploads/tmp"
+modelsDir="/home/dave/Git/ymir/uploads/modelFiles"
+
+[printer]
+host=""
+type="Prusa Mk3S+"
+apiType="octoprint"
+apikey="D99225270941472A9C349F829F35E43C"
 
 [http]
 hostname = "0.0.0.0"
-port = "8082"
+port = "8081"
 usehttps = false
 TLSMinVersion = "1.2"
 HttpTLSStrictCiphers = false
-TLSCert = ".vinduino/vinduino.crt"
-TLSKey = ".vinduino/vinduino.key"
-enableCORS = false
+TLSCert = "ymir.crt"
+TLSKey = "ymir.key"
+enableCORS = true
 JWTSecret = "abc123"
 
 [http.logging]
 enabled = true
-stdout = true
+stdout = false
 fileout = true
-logfile = "./vinduino_http.log"
+logfile = "log/ymir_http.log"

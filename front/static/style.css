@@ -1,0 +1,125 @@
+/* Icons */
+.attributes {
+	border-top: 1px solid var(--line-color);
+	font-size: 0.75rem;
+	padding-top: 1.5rem;
+	padding-bottom: 0.25rem;
+	text-align: center;
+	/*
+  display: grid;
+  justify-content: space-between;
+  grid-template-columns: repeat(auto-fit, minmax(50px, 60px));
+  grid-gap: 15px 0px;
+  */
+}
+
+.attr {
+	text-align: center;
+	font-size: 0.6rem;
+}
+
+.icon {
+	font-size: 24px;
+	display: inline-block;
+	margin-bottom: 10px;
+}
+
+/*
+FilePond
+ */
+.section-hero {
+	color: #c7ccd8;
+	background-color: #1e2430;
+	min-height: 27rem;
+	overflow-x: hidden;
+}
+
+.pond {
+	margin: 0 auto;
+	transition: opacity 1s 0.25s;
+}
+
+.section-hero .pond .filepond--drop-label {
+	color: #c7ccd8;
+}
+
+.pond .filepond--panel-root {
+	/* background-color: rgb(var(--color-surface-200)); */
+	background-color: rgb(var(--color-warning-500) / var(--tw-bg-opacity));
+	border: 1px solid #808080;
+}
+
+.filepond--root .filepond--drip,
+.filepond--root .filepond--panel-root {
+	border-radius: 1em;
+}
+
+.filepond--drop-label {
+	/* color: #626262 !important;*/
+	color: rgb(var(--color-surface-600)) !important;
+	font-family: var(--theme-font-family-base) !important;
+	overflow-wrap: break-word;
+	word-break: break-all;
+}
+
+.filepond--panel-bottom {
+	padding-bottom: 30px;
+	border-radius: 0.5em !important;
+}
+
+/*
+Icon Fonts
+ */
+@font-face {
+	font-family: 'printables-custom-icons';
+	src: url(prusa/printables-custom-icons.ttf) format('truetype'),
+		url(prusa/printables-custom-icons.woff) format('woff');
+	font-weight: 400;
+	font-style: normal;
+	font-display: block;
+}
+[class^='iconfont-'],
+[class*=' iconfont-'] {
+	font-family: printables-custom-icons !important;
+	speak: never;
+	font-style: normal;
+	font-weight: 400;
+	font-variant: normal;
+	text-transform: none;
+	line-height: 1;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+.iconfont-3d-printer-sla:before {
+	content: '\e900';
+}
+.iconfont-3d-printer:before {
+	content: '\e901';
+}
+.iconfont-collection:before {
+	content: '\e902';
+}
+.iconfont-diameter:before {
+	content: '\e903';
+}
+.iconfont-layer-height:before {
+	content: '\e904';
+}
+.iconfont-length:before {
+	content: '\e905';
+}
+.iconfont-make:before {
+	content: '\e906';
+}
+.iconfont-material-spool:before {
+	content: '\e907';
+}
+.iconfont-nozzle:before {
+	content: '\e908';
+}
+.iconfont-ovality:before {
+	content: '\e909';
+}
+.iconfont-standard-deviation:before {
+	content: '\e90a';
+}
