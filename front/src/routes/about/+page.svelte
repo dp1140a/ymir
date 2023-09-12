@@ -61,8 +61,8 @@
 			<li><a href="https://tailwindcss.com/">TailwindCSS</a></li>
 		</ul>
 		<h3 class="h3">License:</h3>
-		<a href="https://opensource.org/licenses/MIT"
-			><img src="https://img.shields.io/badge/License-MIT-yellow.svg" /></a
+		<a href="https://opensource.org/licenses/gpl-3-0"
+			><img src="https://img.shields.io/badge/License-gplv3-red.svg" /></a
 		>
 	</div>
 {:catch err}
