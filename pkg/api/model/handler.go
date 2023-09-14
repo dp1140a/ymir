@@ -188,8 +188,11 @@ func (mh ModelHandler) create(w http.ResponseWriter, r *http.Request) {
 		Notes:       []Note{},
 	}
 
-	fmt.Printf("Form Values: %q\n", r.MultipartForm.Value)
-	fmt.Printf("%q, %v , %T\n", r.MultipartForm.Value["Other_Files"], len(r.MultipartForm.Value["Other_Files"]), r.MultipartForm.Value["Other_Files"])
+	if log.GetLevel() == log.DebugLevel {
+		fmt.Printf("Form Values: %q\n", r.MultipartForm.Value)
+		fmt.Printf("%q, %v , %T\n", r.MultipartForm.Value["Other_Files"], len(r.MultipartForm.Value["Other_Files"]), r.MultipartForm.Value["Other_Files"])
+	}
+
 	for k, v := range r.MultipartForm.Value {
 		switch k {
 		case _DESCRIPTION:
@@ -238,16 +241,26 @@ func (mh ModelHandler) create(w http.ResponseWriter, r *http.Request) {
 PUT /model/{id} [Model{}] (201, 400, 404, 409, 500) -- updates the model with {id} as [Model{}]
 */
 func (mh ModelHandler) update(w http.ResponseWriter, r *http.Request) {
-	var model = &Model{}
+	var model = Model{}
 	err := json.NewDecoder(r.Body).Decode(&model)
 	if err != nil {
 		log.Error(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	fmt.Println(model.Json())
-
+	if log.GetLevel() == log.DebugLevel {
+		fmt.Println(model.Json())
+	}
+	rev, err := mh.Service.(ModelService).UpdateModel(model)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	w.Header().Set("x-powered-by", "bacon")
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	respBody := map[string]string{"status": "ok", "rev": rev}
+	json.NewEncoder(w).Encode(respBody)
 }
 
 /*
@@ -411,8 +424,6 @@ func (mh ModelHandler) addNote(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	fmt.Println(r.Form)
 
 	model := Model{
 		Id:  r.FormValue("_id"),

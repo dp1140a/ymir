@@ -5,12 +5,6 @@
 	export let rev = '';
 	export let notes = [];
 
-	//Note Sort
-	const custom_sort = (a, b) => {
-		return new Date(b.date).getTime() - new Date(a.date).getTime();
-	};
-
-	notes = notes.sort(custom_sort);
 	let noteText = '';
 	let disabled = true
 	function isDisabled() {
@@ -19,15 +13,14 @@
 
 	function newNote(event: Event) {
 		const formEl = event.target as HTMLFormElement;
-		notes.push({
+		notes.unshift({
 			"text": noteText,
-			"date": Date()
+			"date": new Date().toISOString()
 		});
 		notes = notes
 		disabled = true
 		formEl.reset();
 	}
-
 </script>
 
 <div>
@@ -61,7 +54,7 @@
 				</tr>
 			</thead>
 			<tbody>
-				{#each notes as note, i}
+				{#each notes as note}
 					<tr>
 						<td class="w-1/6">{new Date(note.date).toLocaleString()}</td>
 						<td>{note.text}</td>

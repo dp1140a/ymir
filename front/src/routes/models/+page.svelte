@@ -85,13 +85,4 @@
 
 
 <style>
-	.bookshelf {
-		width: 100%;
-		margin: 10px;
-		display: flex;
-		flex-direction: row;
-		flex-wrap: wrap;
-		align-items: flex-start;
-		justify-content: center;
-	}
 </style>

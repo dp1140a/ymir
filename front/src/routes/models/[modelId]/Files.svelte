@@ -45,7 +45,7 @@
 	//let gCodeData = [];
 	const getGCodeMetaData = async (printFiles) => {
 		for (let i=0; i<printFiles.length; i++) {
-			console.log(printFiles[i])
+			//console.log(printFiles[i])
 			const url = _apiUrl('/v1/model/gcode?path=').concat(modelBasePath, '/', printFiles[i].path);
 			let res = await fetch(url);
 			if (!res.ok) {
@@ -53,7 +53,7 @@
 			}
 			let metaData = await res.json();
 			printFiles[i]['metadata'] = metaData;
-			console.log(metaData)
+			//console.log(metaData)
 			//gCodeData.push(metaData);
 		}
 	};
@@ -210,7 +210,7 @@
 			<div class="file-item-container border-bottom py-6 flex justify-start">
 				{#if file.thumbnail}
 					<div class="pr-4 ">
-						<a href="#" on:click={() => showModelSTL(file.path)}>
+						<a href="." on:click={() => showModelSTL(file.path)}>
 							<img src={file.thumbnail} height="90" alt="model thumbnail" class="thumbnail border border-neutral-400"/>
 						</a>
 					</div>
@@ -303,11 +303,6 @@
 
 	input[type="file"] {
 		display: none;
-	}
-
-	.showMe {
-		display: block !important;
-			background-color: rgb(255 255 255 / var(--tw-bg-opacity)) !important;
 	}
 
 </style>

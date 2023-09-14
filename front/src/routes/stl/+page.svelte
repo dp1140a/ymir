@@ -6,6 +6,8 @@
 	import { MeshStandardMaterial } from 'three';
 
 	export let data;
+	const maxDistance = 200;
+	const minDistance = 10;
 
 	let ctx;
 	$: console.log(ctx);
@@ -20,7 +22,7 @@
 				ref.lookAt(0, 1, 0);
 			}}
 		>
-			<OrbitControls enableDamping maxDistance=200 minDistance=10 />
+			<OrbitControls enableDamping maxDistance={maxDistance} minDistance={minDistance} />
 		</T.PerspectiveCamera>
 
 		<T.DirectionalLight position={[1, 10, 1]} intesity={'.5'} />

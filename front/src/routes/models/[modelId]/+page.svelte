@@ -1,18 +1,15 @@
 <script lang="ts">
-	import { tick } from 'svelte';
+	import { goto, invalidateAll } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { TabGroup, Tab, TabAnchor, InputChip } from "@skeletonlabs/skeleton";
 	import { modalStore, type ModalSettings } from '@skeletonlabs/skeleton';
 	import Notes from './Notes.svelte';
 	import Files from './Files.svelte';
-	import { goto } from "$app/navigation";
-	import {_apiUrl} from "../../+layout";
+	import {handleError, _apiUrl} from "$lib/utils";
 
 	export let data;
 	let model = data.model;
 	const modelId = $page.params.modelId;
-console.log(model)
-
 
 	// Carousel ---
 	let elemCarousel: HTMLDivElement;
@@ -55,14 +52,18 @@ console.log(model)
 	};
 
 	//Model Updated Modal
-	export const showUpdated = (title:string, body:string) => {
+	export const showUpdated = (title:string, body:string, reload: boolean) => {
 		const modal: ModalSettings = {
 			type: 'alert',
 			title: title,
 			body: body,
 			buttonTextCancel: 'Cool!',
-			response: (e) => { console.log('Im closing') }
+			//response: (e) => { invalidateAll() }
 		};
+
+		if (reload) {
+			modal.response = (e) => { reloadPage()}
+		}
 		modalStore.trigger(modal);
 	};
 
@@ -72,27 +73,27 @@ console.log(model)
 		saveDisabled = false;
 	}
 
+	const reloadPage = async() => {
+		await invalidateAll()
+		model = data.model;
+	}
+
 	const saveModel = async () => {
-		console.log(model);
-		const response = await fetch(_apiUrl('/v1/model'), {
+		const response = await fetch(_apiUrl(`/v1/model/${model._id}`), {
 			method: 'PUT',
-			body: model
-		}).then((response) => {
-			if (!response.ok) {
-				console.log(response);
-				let eMsg;
-				(async (response) => {
-					eMsg = await response.json();
-					console.log(eMsg);
-					let errorType = `${response.status}: ${response.statusText}`;
-					let errorMessage = 'Oops!  There was an error adding the model. Response was:' + eMsg;
-					showUpdated(errorType, errorMessage);
-				})(response);
-				throw new Error(response.statusText);
-			} else {
-				showUpdated('Complete', 'Model has been successfully Updated');
+			headers: {
+				'Accept': 'application/json',
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(model)
+		}).then(handleError) // skips to .catch if error is thrown
+			.then((response) => {
+				model._rev = response.rev;
+				showUpdated('Complete', 'Model has been successfully Updated', false);
 				saveDisabled = true
-			}
+		}).catch((error) => {
+			let errorMessage = 'Oops!  There was an error updating the model.<br/>Response was: ' + error;
+			showUpdated(error, errorMessage, true);
 		})
 	}
 
@@ -110,6 +111,8 @@ console.log(model)
 	let notes = watchableArray(model.notes);
 </script>
 
+<h1 class="h1">{model.displayName}</h1>
+<hr class="!border-t-2 my-4" />
 <div class="grid grid-flow-col gap-8">
 	<div class="max-w-2xl">
 		<!-- Carousel -->
@@ -164,8 +167,6 @@ console.log(model)
 
 	<!-- Model Details -->
 	<div class="">
-		<h1 class="h1">{model.displayName}</h1>
-		<hr class="!border-t-2 my-4" />
 		<div class="h4">Model Tags:</div>
 		<InputChip
 			name="tags"
@@ -228,7 +229,7 @@ console.log(model)
 					<span><i class="fa-solid fa-file-export" /></span>
 					<span>Download</span>
 				</button></a>
-			<button type="button" class="btn w-48 my-1 variant-filled-error" on:click={() => showNYI(model)}>
+			<button type="button" class="btn w-48 my-1 variant-filled-error" on:click={() => showNYI()}>
 				<span><i class="fa-solid fa-print" /></span>
 				<span>Print</span>
 			</button>
@@ -274,11 +275,6 @@ console.log(model)
 	.attr {
 		color: #2a2a2a;
 		font-size: 11px;
-	}
-
-	.model-icon {
-		height: 128px !important;
-		width: 128px !important;
 	}
 
 	.editable:hover,

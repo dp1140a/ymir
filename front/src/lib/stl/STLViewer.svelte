@@ -12,6 +12,8 @@
 	//export let minZoom = 2000;
 	export let spotlightIntensity = 1.5;
 	export let width = 640;
+
+	//Ignore the svelte-check warning here
 	export let height = 480;
 
 	let msm = new MeshStandardMaterial({ color: materialColor });

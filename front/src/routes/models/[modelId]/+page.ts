@@ -1,5 +1,6 @@
 /** @type {import('./$types').PageLoad} */
-import {_apiUrl} from "../../+layout";
+import { _apiUrl } from '$lib/utils';
+import type { Model, GCodeMetaData } from '$lib/types';
 
 export const load = async ({ fetch, params }) => {
 	/**
@@ -10,18 +11,14 @@ export const load = async ({ fetch, params }) => {
 	if (!res.ok) {
 		throw `Error while fetching data from ${url} (${res.status} ${res.statusText}).`;
 	}
-	const model = await res.json();
-  //console.log(model)
+	const model: Model = await res.json();
+	//console.log(model)
 	/**
 	 * Fetch the Metadata form the First PrintFile
 	 */
-	let metaData = {}
-	if(model.printFiles.length > 0){
-		url = _apiUrl('/v1/model/gcode?path=').concat(
-			model.basePath,
-			'/',
-			model.printFiles[0].path
-		);
+	let metaData: GCodeMetaData;
+	if (model.printFiles.length > 0) {
+		url = _apiUrl('/v1/model/gcode?path=').concat(model.basePath, '/', model.printFiles[0].path);
 		res = await fetch(url);
 		if (!res.ok) {
 			throw `Error while fetching data from ${url} (${res.status} ${res.statusText}).`;
@@ -48,7 +45,6 @@ export const load = async ({ fetch, params }) => {
 			model.modelFiles[i]['thumbnail'] = imgStr;
 		}
 	}
-
-	//console.log(model);
+	console.log(metaData);
 	return { model, metaData };
 };

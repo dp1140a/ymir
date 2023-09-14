@@ -177,15 +177,16 @@ func (ms ModelService) CreateModel(model Model) (err error) {
 	}
 }
 
-func (ms ModelService) UpdateModel(model Model) (err error) {
+func (ms ModelService) UpdateModel(model Model) (rev string, err error) {
 	ctx := context.TODO()
 
-	rev, err := ms.DataStore.GetDB().Put(ctx, model.Id, model)
+	rev, err = ms.DataStore.GetDB().Put(ctx, model.Id, model)
 	if err != nil {
-		return err
+		log.Error(err)
+		return "", err
 	} else {
 		log.Infof("updated model %v in db with rev %v", model.Id, rev)
-		return nil
+		return rev, nil
 	}
 }
 

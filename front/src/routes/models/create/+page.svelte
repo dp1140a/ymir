@@ -9,8 +9,8 @@
 	import 'filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css';
 	import FilePondPluginFileMetadata from 'filepond-plugin-file-metadata';
 	import CKEditor from '$lib/Ckeditor.svelte';
-	import 'ckeditor5-custom-build/build/ckeditor';
-	import { _apiUrl } from "../../+layout"; // https://github.com/techlab23/ckeditor5-svelte/blob/master/src/Ckeditor.svelte
+	import Editor from 'ckeditor5-custom-build/build/ckeditor'; // https://github.com/techlab23/ckeditor5-svelte/blob/master/src/Ckeditor.svelte
+	import { _apiUrl } from "$lib/utils";
 
 	// we need the same type
 	type Data = {
@@ -109,7 +109,7 @@
 		const elms = Array.from(document.getElementsByClassName('filepond--image-preview'));
 		elms.forEach((elm) => {
 			//console.log(elm.style);
-			elm.style.backgroundColor = 'background-color: rgba(255, 255, 255, 0);';
+			elm.setAttribute("style", 'background-color: rgba(255, 255, 255, 0)');
 		});
 	}
 
@@ -163,8 +163,8 @@
 
 	//Editor
 	// Setting up editor prop to be sent to wrapper component
-	//let editor = DecoupledEditor;
-	let editor = ClassicEditor;
+	let editor = Editor;
+	//let editor = null;
 	// Reference to initialised editor instance
 	let editorInstance = null;
 	// Setting up any initial data for the editor

@@ -7,12 +7,12 @@ const printer ={"displayName": "Test", "id": "123456789"}
 
 </script>
 <div class="flex mb-8 my-4 gap-6 bg-surface-200 w-1/2">
-  <a class="" href="#">
-    <img src="/mk3s.svg" class=" printer-img">
+  <a class="" href=".">
+    <img src="/mk3s.svg" class=" printer-img" alt="printer icon">
   </a>
     <div class="flex flex-row gap-8 mt-1">
       <div class="mt-3">
-        <a class="" href="#">
+        <a class="" href=".">
           <div title="ymir" class="font-semibold text-lg">ymir</div>
         </a>
       </div>
