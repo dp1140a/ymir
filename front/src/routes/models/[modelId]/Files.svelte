@@ -112,7 +112,6 @@
 		}
 	}
 
-
 	function newFile(e) {
 		console.log(e)
 	}

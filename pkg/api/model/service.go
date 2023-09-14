@@ -36,9 +36,15 @@ func NewModelService() (modelService api.Service) {
 	ds.Connect()
 	ms.DataStore = ds
 
-	makeDirIfNotExists(ms.config.UploadsTempDir)
-	makeDirIfNotExists(ms.config.ModelsDir)
+	err := makeDirIfNotExists(ms.config.UploadsTempDir)
+	if err != nil {
+		return nil
 
+	}
+	makeDirIfNotExists(ms.config.ModelsDir)
+	if err != nil {
+		return nil
+	}
 	return ms
 }
 
@@ -46,13 +52,15 @@ func (ms ModelService) GetName() (name string) {
 	return ms.name
 }
 
-func makeDirIfNotExists(path string) {
+func makeDirIfNotExists(path string) error {
 	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
 		err := os.MkdirAll(path, os.ModePerm)
 		if err != nil {
 			log.Errorf("error creating dir %v: %v", path, err)
+			return err
 		}
 	}
+	return nil
 }
 
 func (ms ModelService) GetModel(id string) (model Model, err error) {
@@ -280,7 +288,7 @@ func (ms ModelService) UploadFiles(file multipart.File, filename string) (key st
 		return "", err
 	}
 
-	return key, nil
+	return path, nil
 }
 
 func (ms ModelService) FetchModelImage(imagePath string) (imageBytes []byte, err error) {
@@ -311,6 +319,8 @@ func (ms ModelService) FetchSTLThumbnail(filepath string) string {
 }
 
 func (ms ModelService) AddNote(model Model) (err error) {
+	fmt.Println(model.Json())
+
 	ctx := context.TODO()
 
 	existingModel, err := ms.GetModel(model.Id)
@@ -342,15 +352,20 @@ func (ms ModelService) ParseGCode(path string) (gcode.GCodeMetaData, error) {
 	return g.MetaData, nil
 }
 
-func (ms ModelService) organize(model *Model) error {
+func (ms ModelService) organize(model *Model) (err error) {
 	mDir := filepath.Join(ms.config.ModelsDir, model.Id)
-	makeDirIfNotExists(mDir)
+	log.Debugf("model dir: %v", mDir)
+	err = makeDirIfNotExists(mDir)
+	if err != nil {
+		return err
+	}
+	model.BasePath = mDir
 
 	moveAndClean := func(itemPath string) error {
 		from := itemPath
 		fDir, fName := filepath.Split(itemPath)
 		to := filepath.Join(mDir, fName)
-		log.Debugf("moving model from:\n\t%v\nto:\n\t%v\n", from, to)
+		log.Debugf("moving model from: %v to: %v ", from, to)
 
 		if err := os.Rename(from, to); err != nil {
 			log.Error(err)
@@ -366,7 +381,7 @@ func (ms ModelService) organize(model *Model) error {
 	}
 
 	updatePaths := func(files []FileType) error {
-		log.Debugf("files: %v\n", len(files))
+		log.Debugf("num files: %v", len(files))
 		for i, file := range files {
 			err := moveAndClean(file.Path)
 			if err != nil {
@@ -377,21 +392,25 @@ func (ms ModelService) organize(model *Model) error {
 		return nil
 	}
 
+	log.Debugf("ModelFiles:")
 	if err := updatePaths(model.ModelFiles); err != nil {
 		log.Error(err)
 		return err
 	}
 
+	log.Debugf("OtherFiles:")
 	if err := updatePaths(model.OtherFiles); err != nil {
 		log.Error(err)
 		return err
 	}
 
+	log.Debugf("PrintFiles:")
 	if err := updatePaths(model.PrintFiles); err != nil {
 		log.Error(err)
 		return err
 	}
 
+	log.Debugf("Images:")
 	if err := updatePaths(model.Images); err != nil {
 		log.Error(err)
 		return err

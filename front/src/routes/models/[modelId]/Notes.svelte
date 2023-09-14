@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { _apiUrl } from "../../+layout";
+
 	export let id = '';
 	export let rev = '';
 	export let notes = [];
@@ -10,25 +12,39 @@
 
 	notes = notes.sort(custom_sort);
 	let noteText = '';
+	let disabled = true
 	function isDisabled() {
-		return noteText == '';
+		disabled = false;
 	}
+
+	function newNote(event: Event) {
+		const formEl = event.target as HTMLFormElement;
+		notes.push({
+			"text": noteText,
+			"date": Date()
+		});
+		notes = notes
+		disabled = true
+		formEl.reset();
+	}
+
 </script>
 
 <div>
 	<label class="label">
 		<span>New Note</span>
-		<form method="POST" action="http://localhost:8081/v1/model/note">
+		<form on:submit={newNote}>
 			<input type="hidden" id="_id" name="_id" value={id} />
 			<input type="hidden" id="_rev" name="_rev" value={rev} />
 			<textarea
-				name="text"
+				name="noteText"
 				bind:value={noteText}
 				class="textarea"
 				rows="4"
-				placeholder="Lorem ipsum dolor sit amet consectetur adipisicing elit."
+				on:input={isDisabled}
+				placeholder="Note Text Here"
 			/>
-			<button type="submit" class="btn variant-filled-primary" disabled={isDisabled(noteText)}>
+			<button type="submit" class="btn variant-filled-primary" disabled={disabled}>
 				<span><i class="fa-regular fa-floppy-disk" /></span>
 				<span>Save Note</span>
 			</button>
@@ -47,7 +63,7 @@
 			<tbody>
 				{#each notes as note, i}
 					<tr>
-						<td>{note.date}</td>
+						<td class="w-1/6">{new Date(note.date).toLocaleString()}</td>
 						<td>{note.text}</td>
 					</tr>
 				{/each}

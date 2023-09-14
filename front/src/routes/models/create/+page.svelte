@@ -108,7 +108,7 @@
 		//console.log('Firing');
 		const elms = Array.from(document.getElementsByClassName('filepond--image-preview'));
 		elms.forEach((elm) => {
-			console.log(elm.style);
+			//console.log(elm.style);
 			elm.style.backgroundColor = 'background-color: rgba(255, 255, 255, 0);';
 		});
 	}
@@ -117,9 +117,6 @@
 	async function handleForm(event: Event) {
 		const formEl = event.target as HTMLFormElement;
 		const data = new FormData(formEl);
-		//console.log(editorData);
-		// you can see everything about the form
-		//console.log(data.get("modelName"));
 
 		const response = await fetch(_apiUrl('/v1/model'), {
 			method: 'POST',
@@ -140,7 +137,6 @@
 					throw new Error(response.statusText);
 				}
 
-				//@TODO Reload the page on success or go to /models??
 				// reset form
 				formEl.reset();
 

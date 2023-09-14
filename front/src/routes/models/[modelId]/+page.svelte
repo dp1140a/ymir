@@ -11,6 +11,8 @@
 	export let data;
 	let model = data.model;
 	const modelId = $page.params.modelId;
+console.log(model)
+
 
 	// Carousel ---
 	let elemCarousel: HTMLDivElement;
@@ -40,7 +42,6 @@
 	let tabSet: number = 0;
 
 	//Modals
-
 	//Not Yet Implemented Modal
 	export const showNYI = () => {
 		const modal: ModalSettings = {
@@ -106,6 +107,7 @@
 	let printFiles = watchableArray(model.printFiles);
 	let modelFiles = watchableArray(model.modelFiles);
 	let otherFiles = watchableArray(model.otherFiles);
+	let notes = watchableArray(model.notes);
 </script>
 
 <div class="grid grid-flow-col gap-8">
@@ -262,7 +264,7 @@
 				</div>
 				<br />&nbsp;
 			{:else if tabSet === 2}
-				<Notes notes={model.notes} id={model.id} rev={model.rev} />
+				<Notes bind:notes={notes} id={model._id} rev={model._rev} />
 			{/if}
 		</div>
 	</TabGroup>
