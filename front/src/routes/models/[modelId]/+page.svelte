@@ -1,16 +1,20 @@
 <script lang="ts">
-	import { tick } from 'svelte';
+	import { goto, invalidateAll } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { TabGroup, Tab, TabAnchor, InputChip } from "@skeletonlabs/skeleton";
 	import { modalStore, type ModalSettings } from '@skeletonlabs/skeleton';
 	import Notes from './Notes.svelte';
 	import Files from './Files.svelte';
-	import { goto } from "$app/navigation";
-	import {_apiUrl} from "../../+layout";
+	import {handleError, _apiUrl} from "$lib/Utils";
 
 	export let data;
 	let model = data.model;
 	const modelId = $page.params.modelId;
+
+	let errorType = '';
+	let errorMessage = '';
+	let validExtensions ='';
+	let errorVisible: boolean = false;
 
 	// Carousel ---
 	let elemCarousel: HTMLDivElement;
@@ -40,7 +44,6 @@
 	let tabSet: number = 0;
 
 	//Modals
-
 	//Not Yet Implemented Modal
 	export const showNYI = () => {
 		const modal: ModalSettings = {
@@ -48,20 +51,32 @@
 			title: 'TODO:',
 			body: 'Not yet implemented',
 			buttonTextCancel: 'Got It!',
-			response: (e) => { console.log('Im closing') }
+			//response: (e) => { }
 		};
 		modalStore.trigger(modal);
 	};
 
+	const showError = (err) => {
+		console.log(err);
+		errorType = err.detail.name;
+		errorMessage = err.detail.message;
+		validExtensions = err.detail.validExtensions;
+		errorVisible  = true;
+	}
+
 	//Model Updated Modal
-	export const showUpdated = (title:string, body:string) => {
+	export const showUpdated = (title:string, body:string, reload: boolean) => {
 		const modal: ModalSettings = {
 			type: 'alert',
 			title: title,
 			body: body,
 			buttonTextCancel: 'Cool!',
-			response: (e) => { console.log('Im closing') }
+			//response: (e) => { invalidateAll() }
 		};
+
+		if (reload) {
+			modal.response = (e) => { reloadPage()}
+		}
 		modalStore.trigger(modal);
 	};
 
@@ -69,29 +84,31 @@
 	let saveDisabled = true;
 	function needsSave() {
 		saveDisabled = false;
+		//console.log(model)
+	}
+
+	const reloadPage = async() => {
+		await invalidateAll()
+		model = data.model;
 	}
 
 	const saveModel = async () => {
-		console.log(model);
-		const response = await fetch(_apiUrl('/v1/model'), {
+		//console.log(model)
+		const response = await fetch(_apiUrl(`/v1/model/${model._id}`), {
 			method: 'PUT',
-			body: model
-		}).then((response) => {
-			if (!response.ok) {
-				console.log(response);
-				let eMsg;
-				(async (response) => {
-					eMsg = await response.json();
-					console.log(eMsg);
-					let errorType = `${response.status}: ${response.statusText}`;
-					let errorMessage = 'Oops!  There was an error adding the model. Response was:' + eMsg;
-					showUpdated(errorType, errorMessage);
-				})(response);
-				throw new Error(response.statusText);
-			} else {
-				showUpdated('Complete', 'Model has been successfully Updated');
+			headers: {
+				'Accept': 'application/json',
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(model)
+		}).then(handleError) // skips to .catch if error is thrown
+			.then((response) => {
+				model._rev = response.rev;
+				showUpdated('Complete', 'Model has been successfully Updated', false);
 				saveDisabled = true
-			}
+		}).catch((error) => {
+			let errorMessage = 'Oops!  There was an error updating the model.<br/>Response was: ' + error;
+			showUpdated(error, errorMessage, true);
 		})
 	}
 
@@ -106,8 +123,38 @@
 	let printFiles = watchableArray(model.printFiles);
 	let modelFiles = watchableArray(model.modelFiles);
 	let otherFiles = watchableArray(model.otherFiles);
+	let notes = watchableArray(model.notes);
 </script>
-
+<div>
+	{#if errorVisible}
+		<aside class="alert variant-filled-error mb-4">
+			<!-- Icon -->
+			<div><i class="fa-solid fa-triangle-exclamation text" /></div>
+			<!-- Message -->
+			<div class="alert variant-filled-error alert-message text-sm">
+				<div>
+					<h3 class="h3">{errorType}</h3>
+					<div class="h6">Message: {errorMessage}</div>
+					<div class="h6">Valid Extensions: {validExtensions}</div>
+				</div>
+			</div>
+			<!-- Actions -->
+			<div class="alert-actions">
+				<button
+					style="width: 1.5em;"
+					class="btn-icon variant-filled"
+					on:click|stopPropagation={() => {
+									errorVisible = false;
+								}}
+				>
+					<i class="fa-solid fa-xmark" />
+				</button>
+			</div>
+		</aside>
+	{/if}
+</div>
+<h1 class="h1">{model.displayName}</h1>
+<hr class="!border-t-2 my-4" />
 <div class="grid grid-flow-col gap-8">
 	<div class="max-w-2xl">
 		<!-- Carousel -->
@@ -162,8 +209,6 @@
 
 	<!-- Model Details -->
 	<div class="">
-		<h1 class="h1">{model.displayName}</h1>
-		<hr class="!border-t-2 my-4" />
 		<div class="h4">Model Tags:</div>
 		<InputChip
 			name="tags"
@@ -178,7 +223,7 @@
 
 		<hr class="!border-t-2 my-4" />
 		<div class="h4 mb-4">Model Meta Data:</div>
-		{#if Object.keys(data.metaData).length !== 0}
+		{#if data.metaData }
 		<div class="grid w-fit gap-2 grid-cols-7">
 			<div class="attr">
 				<i class="icon fa-regular fa-clock" />
@@ -226,7 +271,7 @@
 					<span><i class="fa-solid fa-file-export" /></span>
 					<span>Download</span>
 				</button></a>
-			<button type="button" class="btn w-48 my-1 variant-filled-error" on:click={() => showNYI(model)}>
+			<button type="button" class="btn w-48 my-1 variant-filled-error" on:click={() => showNYI()}>
 				<span><i class="fa-solid fa-print" /></span>
 				<span>Print</span>
 			</button>
@@ -253,7 +298,7 @@
 			{:else if tabSet === 1}
 				<div class="w-fit mx-auto">
 				<Files
-					modelId={model._id}
+					on:uploadError={showError}
 					modelBasePath={model.basePath}
 					bind:modelFiles={modelFiles}
 					bind:otherFiles={otherFiles}
@@ -262,7 +307,7 @@
 				</div>
 				<br />&nbsp;
 			{:else if tabSet === 2}
-				<Notes notes={model.notes} id={model.id} rev={model.rev} />
+				<Notes bind:notes={notes} id={model._id} rev={model._rev} />
 			{/if}
 		</div>
 	</TabGroup>
@@ -272,11 +317,6 @@
 	.attr {
 		color: #2a2a2a;
 		font-size: 11px;
-	}
-
-	.model-icon {
-		height: 128px !important;
-		width: 128px !important;
 	}
 
 	.editable:hover,

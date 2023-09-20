@@ -12,6 +12,8 @@
 	//export let minZoom = 2000;
 	export let spotlightIntensity = 1.5;
 	export let width = 640;
+
+	//Ignore the svelte-check warning here
 	export let height = 480;
 
 	let msm = new MeshStandardMaterial({ color: materialColor });
@@ -37,7 +39,7 @@
 		camera.position.z = largestDimension * zMultiple;
 		camera.position.x = 0;
 		camera.position.y = 0;
-		console.log(geometry.boundingBox.max.x + ',' + geometry.boundingBox.max.y + ',' + geometry.boundingBox.max.z)
+		//console.log(geometry.boundingBox.max.x + ',' + geometry.boundingBox.max.y + ',' + geometry.boundingBox.max.z)
 	}
 
 </script>

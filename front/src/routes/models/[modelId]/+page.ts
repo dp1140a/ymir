@@ -1,5 +1,6 @@
 /** @type {import('./$types').PageLoad} */
-import {_apiUrl} from "../../+layout";
+import { _apiUrl } from '$lib/Utils';
+import type { Model, GCodeMetaData, ModelFileType } from "$lib/Types";
 
 export const load = async ({ fetch, params }) => {
 	/**
@@ -10,18 +11,14 @@ export const load = async ({ fetch, params }) => {
 	if (!res.ok) {
 		throw `Error while fetching data from ${url} (${res.status} ${res.statusText}).`;
 	}
-	const model = await res.json();
-  //console.log(model)
+	const model: Model = await res.json();
+	//console.log(model)
 	/**
 	 * Fetch the Metadata form the First PrintFile
 	 */
-	let metaData = {}
-	if(model.printFiles.length > 0){
-		url = _apiUrl('/v1/model/gcode?path=').concat(
-			model.basePath,
-			'/',
-			model.printFiles[0].path
-		);
+	let metaData:GCodeMetaData;
+	if (model.printFiles.length > 0) {
+		url = _apiUrl('/v1/model/gcode?path=').concat(model.basePath, '/', model.printFiles[0].path);
 		res = await fetch(url);
 		if (!res.ok) {
 			throw `Error while fetching data from ${url} (${res.status} ${res.statusText}).`;
@@ -35,20 +32,23 @@ export const load = async ({ fetch, params }) => {
 	for (let i = 0; i < model.modelFiles.length; i++) {
 		if (model.modelFiles[i].path.split('.').pop() === 'stl') {
 			//console.log(model.modelFiles[i]);
-			url = _apiUrl('/v1/model/stl/image?path=').concat(
-				model.basePath,
-				'/',
-				model.modelFiles[i].path
-			);
-			let res = await fetch(url);
-			if (!res.ok) {
-				throw `Error while fetching data from ${url} (${res.status} ${res.statusText}).`;
-			}
-			let imgStr = await res.text();
-			model.modelFiles[i]['thumbnail'] = imgStr;
+			model.modelFiles[i]['thumbnail'] = await _getSTLThumbnail(model.modelFiles[i], model.basePath)
 		}
 	}
-
-	//console.log(model);
+	//console.log(metaData);
 	return { model, metaData };
 };
+
+export const _getSTLThumbnail = async (model: ModelFileType, modelPath: string): Promise<string> => {
+	let thumbnail: string
+	let url = _apiUrl('/v1/model/stl/image?path=').concat(
+		modelPath,
+		'/',
+		model.path
+	);
+	let res = await fetch(url);
+	if (!res.ok) {
+		throw `Error while fetching data from ${url} (${res.status} ${res.statusText}).`;
+	}
+	return await res.text();
+}

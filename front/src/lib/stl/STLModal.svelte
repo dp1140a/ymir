@@ -6,7 +6,7 @@
 	let w;
 	let h;
 	onMount(() => {
-		console.log(w + " x " + h)
+		//console.log(w + " x " + h)
 
 	})
 </script>

@@ -2,27 +2,18 @@
 	import { scale, fade } from 'svelte/transition';
 	import { expoIn } from 'svelte/easing';
 	import { base } from '$app/paths';
-	import { _apiUrl } from "../routes/+layout";
+	import { _apiUrl } from './Utils';
+	import type { Model } from "$lib/Types"
 
-	export let model = {
-		_id: '',
-		_rev: '',
-		displayName: '',
-		basePath: '',
-		dateCreated: '',
-		description: '',
-		summary: '',
-		tags: [],
-		images: {}
-	};
+	export let model:Model
 
 	let img: HTMLImageElement;
 
 	function imageLoaded() {
 		if (img.naturalWidth > img.naturalHeight) {
-			img.style = 'width: 100%; max-height: none;';
+			img.setAttribute('style', 'width: 100%; max-height: none;');
 		}
-		img.style = 'height: 202px;';
+		img.setAttribute('height', '202px');
 	}
 </script>
 
@@ -39,7 +30,7 @@
 					src={_apiUrl('/v1/model/image?path=').concat(model.basePath,'/',model.images[0].path)}
 					on:load={imageLoaded}
 					bind:this={img}
-					alt="model image"
+					alt="model"
 				/>
 					{:else }
 					<img
@@ -47,7 +38,7 @@
 						src="/3d-model-icon.png"
 						on:load={imageLoaded}
 						bind:this={img}
-						alt="model image"
+						alt="model icon"
 					/>
 					{/if}
 					</a>

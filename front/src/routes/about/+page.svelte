@@ -64,7 +64,7 @@
 		</ul>
 		<h3 class="h3">License:</h3>
 		<a href="https://opensource.org/licenses/gpl-3-0"
-			><img src="https://img.shields.io/badge/License-gplv3-red.svg" /></a
+			><img src="https://img.shields.io/badge/License-gplv3-red.svg" alt="gpl3 license logo"/></a
 		>
 	</div>
 {:catch err}
