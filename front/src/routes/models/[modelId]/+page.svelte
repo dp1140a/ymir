@@ -84,7 +84,7 @@
 	let saveDisabled = true;
 	function needsSave() {
 		saveDisabled = false;
-		console.log(model)
+		//console.log(model)
 	}
 
 	const reloadPage = async() => {
@@ -93,7 +93,7 @@
 	}
 
 	const saveModel = async () => {
-		console.log(model)
+		//console.log(model)
 		const response = await fetch(_apiUrl(`/v1/model/${model._id}`), {
 			method: 'PUT',
 			headers: {

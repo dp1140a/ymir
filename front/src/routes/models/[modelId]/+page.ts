@@ -32,14 +32,14 @@ export const load = async ({ fetch, params }) => {
 	for (let i = 0; i < model.modelFiles.length; i++) {
 		if (model.modelFiles[i].path.split('.').pop() === 'stl') {
 			//console.log(model.modelFiles[i]);
-			model.modelFiles[i]['thumbnail'] = await getSTLThumbnail(model.modelFiles[i], model.basePath)
+			model.modelFiles[i]['thumbnail'] = await _getSTLThumbnail(model.modelFiles[i], model.basePath)
 		}
 	}
 	//console.log(metaData);
 	return { model, metaData };
 };
 
-const getSTLThumbnail = async (model: ModelFileType, modelPath: string): Promise<string> => {
+export const _getSTLThumbnail = async (model: ModelFileType, modelPath: string): Promise<string> => {
 	let thumbnail: string
 	let url = _apiUrl('/v1/model/stl/image?path=').concat(
 		modelPath,

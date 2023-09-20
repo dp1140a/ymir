@@ -6,10 +6,11 @@
 	import FilePond, { registerPlugin, supported } from 'svelte-filepond'; //https://pqina.nl/filepond/docs/
 	import FilePondPluginFileMetadata from 'filepond-plugin-file-metadata';
 	import { _apiUrl } from "$lib/Utils";
- 	import type {GCodeMetaData, FileType} from "$lib/Types";
+ 	import type {GCodeMetaData, ModelFileType} from "$lib/Types";
 	import { CheckFileType, FileUploadError, imageTypes, modelTypes, otherTypes, printTypes } from "$lib/Files";
 	import type { FilePondFile } from "filepond";
 	//import FilePondPluginImagePreview from "filepond-plugin-image-preview";
+	import {_getSTLThumbnail} from "./+page";
 
 	registerPlugin(FilePondPluginFileMetadata);
 	const dispatch = createEventDispatcher();
@@ -49,14 +50,16 @@
 		}
 	}
 
-	function completeUpload(err:Error, fileItem:FilePondFile) {
+	async function completeUpload(err:Error, fileItem:FilePondFile) {
 		if (err == null) {
 			let pondName = fileItem.getMetadata().pondName;
 			switch (pondName) {
 				case 'Image_Files':
 					break;
 				case 'Model_Files':
-					modelFiles.push({"path": fileItem.serverId})
+					let modelFile = {"path": fileItem.serverId} as ModelFileType
+					modelFile.thumbnail = await _getSTLThumbnail(modelFile, modelBasePath)
+					modelFiles.push(modelFile)
 					modelFiles=modelFiles
 					modelFilesPond.removeFiles()
 					break;
