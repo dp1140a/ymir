@@ -17,10 +17,11 @@ type ModelHandler struct {
 }
 
 const (
-	_MODEL_NAME  = "modelName"
-	_DESCRIPTION = "description"
-	_SUMMARY     = "summary"
-	_TAGS        = "tags"
+	_MODEL_NAME      = "modelName"
+	_MODEL_BASE_PATH = "basePath"
+	_DESCRIPTION     = "description"
+	_SUMMARY         = "summary"
+	_TAGS            = "tags"
 
 	_IMAGE_FILES = "Image_Files"
 	_MODEL_FILES = "Model_Files"
@@ -348,13 +349,14 @@ func (mh ModelHandler) exportModelHandler(w http.ResponseWriter, r *http.Request
 
 func (mh ModelHandler) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseMultipartForm(32 << 20) // 32 MB is the maximum file size
+
+	fmt.Println(r.MultipartForm.Value)
 	if err != nil {
 		log.Error(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	//fmt.Printf("FILES: %v\n", r.MultipartForm.Value)
 	fType := ""
 	if _, ok := r.MultipartForm.Value[_MODEL_FILES]; ok {
 		fType = _MODEL_FILES
@@ -366,7 +368,6 @@ func (mh ModelHandler) uploadHandler(w http.ResponseWriter, r *http.Request) {
 		fType = _OTHER_FILES
 	}
 
-	//fmt.Println(fType)
 	// Get the file from the request
 	file, handler, err := r.FormFile(fType)
 	if err != nil {
@@ -375,13 +376,23 @@ func (mh ModelHandler) uploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	key, err := mh.Service.(ModelService).UploadFiles(file, handler.Filename)
+	/**
+	If we have a basePath param this is not for a new model.
+	*/
+	basePath := r.URL.Query().Get(_MODEL_BASE_PATH)
+	key := ""
+	if basePath != "" {
+		log.Infof("base path: %v", basePath)
+		key, err = mh.Service.(ModelService).UploadFilesExistingModel(file, handler.Filename, basePath)
+
+	} else { // New Model
+		key, err = mh.Service.(ModelService).UploadFilesNewModel(file, handler.Filename)
+
+	}
 	if err != nil {
 		log.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
 	}
-
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(key))

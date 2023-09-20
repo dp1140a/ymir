@@ -89,9 +89,9 @@ GET /ping  (200) -- Returns "OK"
 */
 func (bh *BaseHandler) pingHandler(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("x-powered-by", "bacon")
-	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("OK\n"))
+	json.NewEncoder(w).Encode(`{"status": "ok"}`)
 }
 
 /*

@@ -27,12 +27,7 @@
 /*
 FilePond
  */
-.section-hero {
-	color: #c7ccd8;
-	background-color: #1e2430;
-	min-height: 27rem;
-	overflow-x: hidden;
-}
+
 
 .pond {
 	margin: 0 auto;
@@ -46,7 +41,7 @@ FilePond
 .pond .filepond--panel-root {
 	/* background-color: rgb(var(--color-surface-200)); */
 	background-color: rgb(var(--color-warning-500) / var(--tw-bg-opacity));
-	border: 1px solid #808080;
+	border: 1px dashed #808080;
 }
 
 .filepond--root .filepond--drip,
@@ -60,6 +55,10 @@ FilePond
 	font-family: var(--theme-font-family-base) !important;
 	overflow-wrap: break-word;
 	word-break: break-all;
+}
+
+.pond > .filepond--drop-label:hover {
+	background-color: rgb(var(--color-surface-100)) !important;
 }
 
 .filepond--panel-bottom {

@@ -5,11 +5,16 @@
 	import { modalStore, type ModalSettings } from '@skeletonlabs/skeleton';
 	import Notes from './Notes.svelte';
 	import Files from './Files.svelte';
-	import {handleError, _apiUrl} from "$lib/utils";
+	import {handleError, _apiUrl} from "$lib/Utils";
 
 	export let data;
 	let model = data.model;
 	const modelId = $page.params.modelId;
+
+	let errorType = '';
+	let errorMessage = '';
+	let validExtensions ='';
+	let errorVisible: boolean = false;
 
 	// Carousel ---
 	let elemCarousel: HTMLDivElement;
@@ -46,10 +51,18 @@
 			title: 'TODO:',
 			body: 'Not yet implemented',
 			buttonTextCancel: 'Got It!',
-			response: (e) => { console.log('Im closing') }
+			//response: (e) => { }
 		};
 		modalStore.trigger(modal);
 	};
+
+	const showError = (err) => {
+		console.log(err);
+		errorType = err.detail.name;
+		errorMessage = err.detail.message;
+		validExtensions = err.detail.validExtensions;
+		errorVisible  = true;
+	}
 
 	//Model Updated Modal
 	export const showUpdated = (title:string, body:string, reload: boolean) => {
@@ -71,6 +84,7 @@
 	let saveDisabled = true;
 	function needsSave() {
 		saveDisabled = false;
+		//console.log(model)
 	}
 
 	const reloadPage = async() => {
@@ -79,6 +93,7 @@
 	}
 
 	const saveModel = async () => {
+		//console.log(model)
 		const response = await fetch(_apiUrl(`/v1/model/${model._id}`), {
 			method: 'PUT',
 			headers: {
@@ -110,7 +125,34 @@
 	let otherFiles = watchableArray(model.otherFiles);
 	let notes = watchableArray(model.notes);
 </script>
-
+<div>
+	{#if errorVisible}
+		<aside class="alert variant-filled-error mb-4">
+			<!-- Icon -->
+			<div><i class="fa-solid fa-triangle-exclamation text" /></div>
+			<!-- Message -->
+			<div class="alert variant-filled-error alert-message text-sm">
+				<div>
+					<h3 class="h3">{errorType}</h3>
+					<div class="h6">Message: {errorMessage}</div>
+					<div class="h6">Valid Extensions: {validExtensions}</div>
+				</div>
+			</div>
+			<!-- Actions -->
+			<div class="alert-actions">
+				<button
+					style="width: 1.5em;"
+					class="btn-icon variant-filled"
+					on:click|stopPropagation={() => {
+									errorVisible = false;
+								}}
+				>
+					<i class="fa-solid fa-xmark" />
+				</button>
+			</div>
+		</aside>
+	{/if}
+</div>
 <h1 class="h1">{model.displayName}</h1>
 <hr class="!border-t-2 my-4" />
 <div class="grid grid-flow-col gap-8">
@@ -181,7 +223,7 @@
 
 		<hr class="!border-t-2 my-4" />
 		<div class="h4 mb-4">Model Meta Data:</div>
-		{#if Object.keys(data.metaData).length !== 0}
+		{#if data.metaData }
 		<div class="grid w-fit gap-2 grid-cols-7">
 			<div class="attr">
 				<i class="icon fa-regular fa-clock" />
@@ -256,7 +298,7 @@
 			{:else if tabSet === 1}
 				<div class="w-fit mx-auto">
 				<Files
-					modelId={model._id}
+					on:uploadError={showError}
 					modelBasePath={model.basePath}
 					bind:modelFiles={modelFiles}
 					bind:otherFiles={otherFiles}

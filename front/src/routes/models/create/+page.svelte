@@ -10,7 +10,7 @@
 	import FilePondPluginFileMetadata from 'filepond-plugin-file-metadata';
 	import CKEditor from '$lib/Ckeditor.svelte';
 	import Editor from 'ckeditor5-custom-build/build/ckeditor'; // https://github.com/techlab23/ckeditor5-svelte/blob/master/src/Ckeditor.svelte
-	import { _apiUrl } from "$lib/utils";
+	import { _apiUrl } from "$lib/Utils";
 
 	// we need the same type
 	type Data = {
