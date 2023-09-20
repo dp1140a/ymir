@@ -7,14 +7,14 @@ export interface Model {
 	description: string;
 	summary: string;
 	tags: string[];
-	images: Fileinterface[];
-	printFiles: Fileinterface[];
-	modelFiles: ModelFileinterface[];
-	otherFiles: Fileinterface[];
+	images: FileType[];
+	printFiles: FileType[];
+	modelFiles: ModelFileType[];
+	otherFiles: FileType[];
 	notes: Note[];
 }
 
-export interface Fileinterface {
+export interface FileType {
 	path: string;
 }
 
@@ -23,7 +23,7 @@ export interface Note {
 	date: string;
 }
 
-export interface ModelFileinterface extends Fileinterface {
+export interface ModelFileType extends FileType {
 	thumbnail: string;
 }
 
@@ -40,3 +40,5 @@ export interface GCodeMetaData {
 	printerType: string;
 	thumbnail: string;
 }
+
+export default {}

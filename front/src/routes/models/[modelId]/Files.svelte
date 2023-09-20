@@ -1,17 +1,29 @@
 <script lang="ts">
+	import {createEventDispatcher} from 'svelte'
 	import { modalStore, type ModalSettings, type ModalComponent } from '@skeletonlabs/skeleton';
 	import STLModal from '$lib/stl/STLModal.svelte';
 	import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 	import FilePond, { registerPlugin, supported } from 'svelte-filepond'; //https://pqina.nl/filepond/docs/
 	import FilePondPluginFileMetadata from 'filepond-plugin-file-metadata';
-	import { _apiUrl } from "../../+layout";
+	import { _apiUrl } from "$lib/Utils";
+ 	import type {GCodeMetaData, FileType} from "$lib/Types";
+	import { CheckFileType, FileUploadError, imageTypes, modelTypes, otherTypes, printTypes } from "$lib/Files";
+	import type { FilePondFile } from "filepond";
+	//import FilePondPluginImagePreview from "filepond-plugin-image-preview";
 
-	export let modelId = '';
+	registerPlugin(FilePondPluginFileMetadata);
+	const dispatch = createEventDispatcher();
 	export let modelBasePath = '';
 	export let modelFiles = [];
 	export let otherFiles = [];
 	export let printFiles = [];
-	let gCodeMeta: GCodeMetaData;
+	let gCodeMetaData: GCodeMetaData;
+
+	// Hooks to FilePond Instances
+	let modelFilesPond
+	let otherFilesPond
+	let printFilesPond
+
 	//Modal
 	// Provide the modal settings
 	const modal: ModalSettings = {
@@ -28,19 +40,39 @@
 		modalStore.trigger(modal);
 	};
 
-	type GCodeMetaData = {
-		filePath: string;
-		gCodeType: string;
-		createdBy: string;
-		createdDate: string;
-		totalTime: string;
-		layerHeight: string;
-		nozzleDiameter: string;
-		material: string;
-		filamentUsedG: string;
-		filamentUsedM: string;
-		printerType: string;
-	};
+	function checkUploadFileType(error:Error, fileItem:FilePondFile) {
+		let err: FileUploadError;
+		err = CheckFileType(fileItem);
+		if (err !== null) {
+			fileItem.abortLoad();
+			dispatch('uploadError', err);
+		}
+	}
+
+	function completeUpload(err:Error, fileItem:FilePondFile) {
+		if (err == null) {
+			let pondName = fileItem.getMetadata().pondName;
+			switch (pondName) {
+				case 'Image_Files':
+					break;
+				case 'Model_Files':
+					modelFiles.push({"path": fileItem.serverId})
+					modelFiles=modelFiles
+					modelFilesPond.removeFiles()
+					break;
+				case 'Other_Files':
+					otherFiles.push({"path": fileItem.serverId})
+					otherFiles=otherFiles
+					otherFilesPond.removeFiles()
+					break;
+				case 'Print_Files':
+					printFiles.push({"path": fileItem.serverId})
+					printFiles=otherFiles
+					printFilesPond.removeFiles()
+					break;
+			}
+		}
+	}
 
 	//let gCodeData = [];
 	const getGCodeMetaData = async (printFiles) => {
@@ -51,14 +83,13 @@
 			if (!res.ok) {
 				throw `Error while fetching data from ${url} (${res.status} ${res.statusText}).`;
 			}
-			let metaData = await res.json();
-			printFiles[i]['metadata'] = metaData;
-			//console.log(metaData)
-			//gCodeData.push(metaData);
+			gCodeMetaData = await res.json();
+			printFiles[i]['metadata'] = gCodeMetaData;
 		}
 	};
 
-	const getSTLThumbNail = async (modelFiles) => {
+	/**
+	const getSTLThumbNail = async (modelFiles:FileType[]) => {
 		for (const file of modelFiles) {
 			const url = _apiUrl('/v1/model/stlThumbnail?path=').concat(modelBasePath, '/', file.path);
 			let res = await fetch(url);
@@ -69,12 +100,10 @@
 			return 'data:image/jpeg;base64,'.concat(imgStr);
 		}
 	};
+**/
 
-	const basename = (path) => {
-		return path.split('/').reverse()[0];
-	};
 
-	const showModelSTL = (file) => {
+	const showModelSTL = (file:string) => {
 		const url = _apiUrl("/v1/model/stl?path=").concat(modelBasePath,"/",file);
 		let loader = new STLLoader();
 		loader.loadAsync(url, function (geometry) {
@@ -119,14 +148,34 @@
 
 <div id="filesContainer" class="">
 	<!-- Print Files -->
-	<div id="printFiles">
-		<div class="h3 section-header border-bottom pt-6 text-center variant-soft-surface border-top">Print Files</div>
+	<div id="printFiles" class="mt-10 border border-black rounded-md ">
+		<div class="h3 section-header pt-4 pb-1 px-4 text-center variant-soft-surface border-bottom border-black">
+			Print Files
+			<div class="pt-6">
+				<FilePond
+					name="Print_Files"
+					class="pond"
+					allowMultiple={true}
+					credits="false"
+					server={{
+								url: _apiUrl(`/v1/model/file?basePath=${modelBasePath}`)
+							}}
+					fileMetadataObject={{
+								pondName: 'Print_Files'
+							}}
+					bind:this={printFilesPond}
+					onaddfile={checkUploadFileType}
+					onprocessfile={completeUpload}
+					labelIdle="Drag & Drop your files or <span class='filepond--label-action'> Browse </span><br/>"
+				/>
+			</div>
+		</div>
 		{#await getGCodeMetaData(printFiles)}
 			Getting Print File Details...
 		{:then _}
 			{#if printFiles.length > 0}
 				{#each printFiles as file, i}
-					<div class="file-item-container border-bottom py-6 flex justify-start">
+					<div class="file-item-container py-6 px-2 flex justify-start">
 						{#if file.metadata.thumbnail}
 							<div class="pr-4">
 								<img src={file.metadata.thumbnail} height="90" alt="model thumbnail" class="thumbnail" />
@@ -138,7 +187,7 @@
 						{/if}
 						<div class="info">
 							<div>
-								{file.path}
+								{file.path.split("/").at(-1)}
 							</div>
 							<div class="attributes grid grid-cols-7 gap-2">
 								<div>
@@ -196,21 +245,34 @@
 	</div>
 
 	<!-- Model Files -->
-	<div id="modelFiles">
-		<div class="h3 section-header border-bottom py-4 text-center variant-soft-surface">
+	<div id="modelFiles" class="mt-10 border border-black rounded-md ">
+		<div class="h3 section-header pt-4 pb-1 px-4 text-center variant-soft-surface border-bottom border-black">
 			Model Files
-			<label for="addModelFile" class="btn btn-sm variant-filled-error float-right mb-4 mr-3 ">
-				<span><i class="fa-solid fa-add" /></span>
-				<span>Add File</span>
-			</label>
-			<input type="file" id="addModelFile" class="" on:change={newFile} >
+			<div class="pt-6">
+				<FilePond
+					name="Model_Files"
+					class="pond"
+					allowMultiple={true}
+					credits="false"
+					server={{
+								url: _apiUrl(`/v1/model/file?basePath=${modelBasePath}`)
+							}}
+					fileMetadataObject={{
+								pondName: 'Model_Files'
+							}}
+					bind:this={modelFilesPond}
+					onaddfile={checkUploadFileType}
+					onprocessfile={completeUpload}
+					labelIdle="Drag & Drop your files or <span class='filepond--label-action'> Browse </span><br/>"
+				/>
+			</div>
 		</div>
 		{#if modelFiles.length > 0}
 		{#each modelFiles as file, i}
-			<div class="file-item-container border-bottom py-6 flex justify-start">
+			<div class="file-item-container py-6 px-2  flex justify-start">
 				{#if file.thumbnail}
 					<div class="pr-4 ">
-						<a href="." on:click={() => showModelSTL(file.path)}>
+						<a href="" on:click={() => showModelSTL(file.path)}>
 							<img src={file.thumbnail} height="90" alt="model thumbnail" class="thumbnail border border-neutral-400"/>
 						</a>
 					</div>
@@ -220,7 +282,7 @@
 					</div>
 				{/if}
 				<div class="w-full">
-					{file.path}
+					{file.path.split("/").at(-1)}
 				</div>
 				<div class="">
 					<button type="button" on:click={() => deleteFile(i, "model")}><i class="fa-regular fa-circle-xmark float-right icon-orange" /></button>
@@ -233,32 +295,36 @@
 	</div>
 
 	<!-- Other Files -->
-	<div id="otherFiles">
-		<div class="h3 section-header border-bottom pt-6 text-center variant-soft-surface">
+	<div id="otherFiles" class="mt-10 border border-black rounded-md ">
+		<div class="h3 section-header pt-4 pb-1 px-4 text-center variant-soft-surface border-bottom border-black">
 			Other Files
-			<FilePond
-				name="Other_Files"
-				class="filepond pond"
-				allowMultiple={true}
-				credits="false"
-				server={{
-							url: _apiUrl('/v1/model/file')
-						}}
-				fileMetadataObject={{
-							pondName: 'Other_Files'
-						}}
-
-				labelIdle="Drag & Drop your files or <span class='filepond--label-action'> Browse </span><br/>"
-			/>
+			<div class="pt-6">
+				<FilePond
+					name="Other_Files"
+					class="pond"
+					allowMultiple={true}
+					credits="false"
+					server={{
+								url: _apiUrl(`/v1/model/file?basePath=${modelBasePath}`)
+							}}
+					fileMetadataObject={{
+								pondName: 'Other_Files'
+							}}
+					bind:this={otherFilesPond}
+					onaddfile={checkUploadFileType}
+					onprocessfile={completeUpload}
+					labelIdle="Drag & Drop your files or <span class='filepond--label-action'> Browse </span><br/>"
+				/>
+			</div>
 		</div>
 		{#if otherFiles.length > 0}
 			{#each otherFiles as file, i}
-				<div class="file-item-container border-bottom py-6 flex justify-start">
+				<div class="file-item-container py-6 px-2 flex justify-start">
 					<div class="icon-orange mx-4">
 						<i class="fa fa-regular fa-cube" />
 					</div>
 					<div class="w-full">
-						{file.path}
+						{file.path.split("/").at(-1)}
 					</div>
 					<div class="">
 						<button type="button" on:click={() => deleteFile(i, "other")} ><i class="fa-regular fa-circle-xmark float-right icon-orange" /></button>

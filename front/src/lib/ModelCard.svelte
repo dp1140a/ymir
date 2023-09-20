@@ -2,8 +2,8 @@
 	import { scale, fade } from 'svelte/transition';
 	import { expoIn } from 'svelte/easing';
 	import { base } from '$app/paths';
-	import { _apiUrl } from './utils';
-	import type { Model } from "$lib/types"
+	import { _apiUrl } from './Utils';
+	import type { Model } from "$lib/Types"
 
 	export let model:Model
 

@@ -39,7 +39,7 @@
 		camera.position.z = largestDimension * zMultiple;
 		camera.position.x = 0;
 		camera.position.y = 0;
-		console.log(geometry.boundingBox.max.x + ',' + geometry.boundingBox.max.y + ',' + geometry.boundingBox.max.z)
+		//console.log(geometry.boundingBox.max.x + ',' + geometry.boundingBox.max.y + ',' + geometry.boundingBox.max.z)
 	}
 
 </script>

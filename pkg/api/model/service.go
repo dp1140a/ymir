@@ -264,31 +264,79 @@ func (ms ModelService) GetModelsByTag(tag string) ([]Model, error) {
 	return docs, nil
 }
 
-func (ms ModelService) UploadFiles(file multipart.File, filename string) (key string, err error) {
-
-	defer file.Close()
-
-	//Generate key
-	tK := GenId()
-	makeDirIfNotExists(fmt.Sprintf("%s/%s", ms.config.UploadsTempDir, tK))
-	key = fmt.Sprintf("%s/%s", tK, filename)
-	path := fmt.Sprintf("%s/%s", ms.config.UploadsTempDir, key)
-	log.Debugf("upload filepath: %v", path)
+func writeFile(file *multipart.File, path string) error {
 	// Create a new file in the uploads directory
 	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		log.Error(err)
-		return "", err
+		return err
 	}
 	defer f.Close()
 
 	// Copy the contents of the file to the new file
-	_, err = io.Copy(f, file)
+	_, err = io.Copy(f, *file)
 	if err != nil {
 		log.Error(err)
-		return "", err
+		return err
+	}
+	return nil
+}
+
+func (ms ModelService) UploadFilesExistingModel(file multipart.File, filename string, basePath string) (key string, err error) {
+	defer file.Close()
+
+	//Look a folder named "files" in the model folder
+	entries, err := os.ReadDir(basePath)
+	if err != nil {
+		log.Fatal(err)
 	}
 
+	hasFilesDir := false
+	for _, dir := range entries {
+		if dir.Name() == "files" {
+			hasFilesDir = true
+			break
+		}
+	}
+
+	var path string
+	if hasFilesDir {
+		//If has files dir then move the new file there
+		key = filepath.Join("files", filename)
+		path = filepath.Join(basePath, key)
+	} else {
+		//else move to basePath
+		key = filename
+		path = filepath.Join(basePath, key)
+	}
+	log.Debugf("upload filepath: %v", path)
+	err = writeFile(&file, path)
+	if err != nil {
+		log.Errorf("error writing file: %v", err)
+		return key, err
+	}
+	return key, nil
+}
+
+func (ms ModelService) UploadFilesNewModel(file multipart.File, filename string) (key string, err error) {
+	defer file.Close()
+
+	//Generate key
+	tK := GenId()
+	err = makeDirIfNotExists(filepath.Join(ms.config.UploadsTempDir, tK))
+	if err != nil {
+		log.Debugf("error making upload dir: %v", err)
+		return "", err
+	}
+	key = filepath.Join(tK, filename)
+	path := filepath.Join(ms.config.UploadsTempDir, key)
+	log.Debugf("upload filepath: %v", path)
+
+	err = writeFile(&file, path)
+	if err != nil {
+		log.Errorf("error writing file: %v", err)
+		return "", err
+	}
 	return path, nil
 }
 

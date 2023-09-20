@@ -1,6 +1,6 @@
 /** @type {import('./$types').PageLoad} */
-import { _apiUrl } from '$lib/utils';
-import type { Model, GCodeMetaData } from '$lib/types';
+import { _apiUrl } from '$lib/Utils';
+import type { Model, GCodeMetaData, ModelFileType } from "$lib/Types";
 
 export const load = async ({ fetch, params }) => {
 	/**
@@ -16,7 +16,7 @@ export const load = async ({ fetch, params }) => {
 	/**
 	 * Fetch the Metadata form the First PrintFile
 	 */
-	let metaData: GCodeMetaData;
+	let metaData:GCodeMetaData;
 	if (model.printFiles.length > 0) {
 		url = _apiUrl('/v1/model/gcode?path=').concat(model.basePath, '/', model.printFiles[0].path);
 		res = await fetch(url);
@@ -32,19 +32,23 @@ export const load = async ({ fetch, params }) => {
 	for (let i = 0; i < model.modelFiles.length; i++) {
 		if (model.modelFiles[i].path.split('.').pop() === 'stl') {
 			//console.log(model.modelFiles[i]);
-			url = _apiUrl('/v1/model/stl/image?path=').concat(
-				model.basePath,
-				'/',
-				model.modelFiles[i].path
-			);
-			let res = await fetch(url);
-			if (!res.ok) {
-				throw `Error while fetching data from ${url} (${res.status} ${res.statusText}).`;
-			}
-			let imgStr = await res.text();
-			model.modelFiles[i]['thumbnail'] = imgStr;
+			model.modelFiles[i]['thumbnail'] = await getSTLThumbnail(model.modelFiles[i], model.basePath)
 		}
 	}
-	console.log(metaData);
+	//console.log(metaData);
 	return { model, metaData };
 };
+
+const getSTLThumbnail = async (model: ModelFileType, modelPath: string): Promise<string> => {
+	let thumbnail: string
+	let url = _apiUrl('/v1/model/stl/image?path=').concat(
+		modelPath,
+		'/',
+		model.path
+	);
+	let res = await fetch(url);
+	if (!res.ok) {
+		throw `Error while fetching data from ${url} (${res.status} ${res.statusText}).`;
+	}
+	return await res.text();
+}
