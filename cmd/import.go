@@ -6,6 +6,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"ymir/pkg/api/model"
+	"ymir/pkg/config"
 	"ymir/pkg/importer"
 )
 
@@ -37,6 +38,7 @@ With the db flag it will make entries into the db.  Some assumptions were made t
 	└── README.txt
 `,
 	Run: func(cmd *cobra.Command, args []string) {
+		config.InitConfig()
 		runImport()
 	},
 }

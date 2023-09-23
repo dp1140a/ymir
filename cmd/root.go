@@ -26,7 +26,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"ymir/pkg/config"
 )
 
 var CfgFile string
@@ -35,7 +34,7 @@ var CfgFile string
 var rootCmd = &cobra.Command{
 	Use:   "ymir",
 	Short: "A 3D File Manager for STL and GCode",
-	Long:  `I will write this later`,
+	Long:  `Ymir is a 3D model manager. In a nutshell it is a light and local version of the printables.com website`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	// Run: func(cmd *cobra.Command, args []string) { },
@@ -51,9 +50,6 @@ func Execute() {
 }
 
 func init() {
-	//rootCmd.AddCommand(DbCmd)
-	cobra.OnInitialize(config.InitConfig)
-
 	//Global Flags
 	rootCmd.PersistentFlags().StringVar(&CfgFile, "config", "ymir.toml", "config file (default is ymir.toml)")
 	viper.BindPFlag("cfgFile", rootCmd.PersistentFlags().Lookup("config"))
