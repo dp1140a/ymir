@@ -51,6 +51,6 @@ func Execute() {
 
 func init() {
 	//Global Flags
-	rootCmd.PersistentFlags().StringVar(&CfgFile, "config", "ymir.toml", "config file (default is ymir.toml)")
+	rootCmd.PersistentFlags().StringVar(&CfgFile, "config", "ymir.toml", "config file (default is ./ymir.toml)")
 	viper.BindPFlag("cfgFile", rootCmd.PersistentFlags().Lookup("config"))
 }
