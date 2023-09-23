@@ -29,7 +29,7 @@ var dbCmd = &cobra.Command{
 
 		} else {
 			fmt.Printf("%s is not a valid action.\n", Action)
-			cmd.Help()
+			_ = cmd.Help()
 		}
 	},
 }
