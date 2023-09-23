@@ -46,7 +46,7 @@ With the db flag it will make entries into the db.  Some assumptions were made t
 func init() {
 	rootCmd.AddCommand(importCmd)
 	importCmd.Flags().StringVarP(&Path, "path", "p", ".", "Base directory path of models to import.  Will walk all sub-directories from there")
-	importCmd.Flags().StringSliceVarP(&Tags, "tagsr", "t", []string{}, "Tags for each model found")
+	importCmd.Flags().StringSliceVarP(&Tags, "tags", "t", []string{}, "Tags for each model found")
 	importCmd.Flags().BoolVarP(&inDb, "db", "d", false, "If true enters each model into the db")
 }
 
