@@ -4,7 +4,6 @@ import (
 	"archive/zip"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -18,6 +17,7 @@ import (
 	"ymir/pkg/db"
 	"ymir/pkg/gcode"
 	"ymir/pkg/stl"
+	"ymir/pkg/utils"
 )
 
 type ModelService struct {
@@ -36,23 +36,14 @@ func NewModelService() (modelService api.Service) {
 	ds.Connect()
 	ms.DataStore = ds
 
-	makeDirIfNotExists(ms.config.UploadsTempDir)
-	makeDirIfNotExists(ms.config.ModelsDir)
+	utils.MakeDirIfNotExists(ms.config.UploadsTempDir)
+	utils.MakeDirIfNotExists(ms.config.ModelsDir)
 
 	return ms
 }
 
 func (ms ModelService) GetName() (name string) {
 	return ms.name
-}
-
-func makeDirIfNotExists(path string) {
-	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
-		err := os.MkdirAll(path, os.ModePerm)
-		if err != nil {
-			log.Errorf("error creating dir %v: %v", path, err)
-		}
-	}
 }
 
 func (ms ModelService) GetModel(id string) (model Model, err error) {
@@ -261,7 +252,7 @@ func (ms ModelService) UploadFiles(file multipart.File, filename string) (key st
 
 	//Generate key
 	tK := GenId()
-	makeDirIfNotExists(fmt.Sprintf("%s/%s", ms.config.UploadsTempDir, tK))
+	utils.MakeDirIfNotExists(fmt.Sprintf("%s/%s", ms.config.UploadsTempDir, tK))
 	key = fmt.Sprintf("%s/%s", tK, filename)
 	path := fmt.Sprintf("%s/%s", ms.config.UploadsTempDir, key)
 	log.Debugf("upload filepath: %v", path)
@@ -344,7 +335,7 @@ func (ms ModelService) ParseGCode(path string) (gcode.GCodeMetaData, error) {
 
 func (ms ModelService) organize(model *Model) error {
 	mDir := filepath.Join(ms.config.ModelsDir, model.Id)
-	makeDirIfNotExists(mDir)
+	utils.MakeDirIfNotExists(mDir)
 
 	moveAndClean := func(itemPath string) error {
 		from := itemPath
