@@ -15,11 +15,8 @@ dbName = "ymir"
 uploadsTempDir="uploads/tmp"
 modelsDir="uploads/modelFiles"
 
-[printer]
-host="127.0.0.1"
-type="Prusa Mk3S+"
-apiType="octoprint"
-apikey="ABC123"
+[printers]
+printersDir="uploads/printers"
 
 [http]
 hostname = "0.0.0.0"
