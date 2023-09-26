@@ -141,7 +141,7 @@ func addFilesToZip(w *zip.Writer, basePath, baseInZip string) error {
 
 func (ms ModelService) CreateModel(model Model) (err error) {
 	ctx := context.TODO()
-	model.Id = GenId()
+	model.Id = utils.GenId()
 	//fmt.Println(model.Json())
 	// We want to organize all the files and the model
 	err = ms.organize(&model)
@@ -251,7 +251,7 @@ func (ms ModelService) UploadFiles(file multipart.File, filename string) (key st
 	defer file.Close()
 
 	//Generate key
-	tK := GenId()
+	tK := utils.GenId()
 	utils.MakeDirIfNotExists(fmt.Sprintf("%s/%s", ms.config.UploadsTempDir, tK))
 	key = fmt.Sprintf("%s/%s", tK, filename)
 	path := fmt.Sprintf("%s/%s", ms.config.UploadsTempDir, key)
