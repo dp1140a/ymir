@@ -13,6 +13,7 @@ import (
 	"golang.org/x/exp/slices"
 	"ymir/pkg/api/model"
 	"ymir/pkg/db"
+	"ymir/pkg/utils"
 )
 
 type Importer struct {
@@ -68,7 +69,7 @@ func (i *Importer) walk(path string, m *model.Model) error {
 		} else {
 			if m == nil {
 				m = &model.Model{
-					Id:          model.GenId(),
+					Id:          utils.GenId(),
 					DisplayName: cleanDisplayName(filepath.Base(filepath.Dir(fName))),
 					BasePath:    path,
 					Tags:        i.Tags,
