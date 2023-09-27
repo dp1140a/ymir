@@ -8,6 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/slices"
+	"ymir/pkg/config"
 	db2 "ymir/pkg/db"
 )
 
@@ -23,11 +24,12 @@ var dbCmd = &cobra.Command{
 	Long:  `Database Command.  All params necessary are taken form the config used.  Either the default config or the config file specified as a global flag`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if slices.Contains(actionValues, Action) {
+			config.InitConfig()
 			runDB()
 
 		} else {
 			fmt.Printf("%s is not a valid action.\n", Action)
-			cmd.Help()
+			_ = cmd.Help()
 		}
 	},
 }

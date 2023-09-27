@@ -388,7 +388,9 @@
 	background: rgba(0, 0, 0, 0.32);
 }
 .cdk-overlay-transparent-backdrop {
-	transition: visibility 1ms linear, opacity 1ms linear;
+	transition:
+		visibility 1ms linear,
+		opacity 1ms linear;
 	visibility: hidden;
 	opacity: 1;
 }
@@ -955,7 +957,14 @@ pre,
 code,
 kbd,
 samp {
-	font-family: SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+	font-family:
+		SFMono-Regular,
+		Menlo,
+		Monaco,
+		Consolas,
+		Liberation Mono,
+		Courier New,
+		monospace;
 	font-size: 1em;
 }
 pre {
@@ -2490,7 +2499,9 @@ mark,
 	background-clip: padding-box;
 	border: 1px solid var(--input-border);
 	border-radius: 0.125rem;
-	transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+	transition:
+		border-color 0.15s ease-in-out,
+		box-shadow 0.15s ease-in-out;
 }
 @media (prefers-reduced-motion: reduce) {
 	.form-control {
@@ -2699,7 +2710,8 @@ textarea.form-control.is-valid {
 .custom-select.is-valid {
 	border-color: #28a745;
 	padding-right: calc(0.75em + 2.3125rem) !important;
-	background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='4' height='5' viewBox='0 0 4 5'%3e%3cpath fill='%23343a40' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e")
+	background:
+		url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='4' height='5' viewBox='0 0 4 5'%3e%3cpath fill='%23343a40' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e")
 			right 0.75rem center/8px 10px no-repeat,
 		#fff
 			url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3e%3cpath fill='%2328a745' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e")
@@ -2810,7 +2822,8 @@ textarea.form-control.is-invalid {
 .custom-select.is-invalid {
 	border-color: #dc3545;
 	padding-right: calc(0.75em + 2.3125rem) !important;
-	background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='4' height='5' viewBox='0 0 4 5'%3e%3cpath fill='%23343a40' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e")
+	background:
+		url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='4' height='5' viewBox='0 0 4 5'%3e%3cpath fill='%23343a40' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e")
 			right 0.75rem center/8px 10px no-repeat,
 		#fff
 			url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23dc3545' viewBox='0 0 12 12'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e")
@@ -2931,8 +2944,11 @@ textarea.form-control.is-invalid {
 	font-size: 1rem;
 	line-height: 1.3125;
 	border-radius: 0.125rem;
-	transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
-		border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+	transition:
+		color 0.15s ease-in-out,
+		background-color 0.15s ease-in-out,
+		border-color 0.15s ease-in-out,
+		box-shadow 0.15s ease-in-out;
 }
 @media (prefers-reduced-motion: reduce) {
 	.btn {
@@ -4524,8 +4540,11 @@ input[type='button'].btn-block {
 	white-space: nowrap;
 	vertical-align: baseline;
 	border-radius: 0.125rem;
-	transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
-		border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+	transition:
+		color 0.15s ease-in-out,
+		background-color 0.15s ease-in-out,
+		border-color 0.15s ease-in-out,
+		box-shadow 0.15s ease-in-out;
 }
 @media (prefers-reduced-motion: reduce) {
 	.badge {
@@ -8327,7 +8346,14 @@ button.bg-dark:focus {
 	background-color: #0000;
 }
 .text-monospace {
-	font-family: SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace !important;
+	font-family:
+		SFMono-Regular,
+		Menlo,
+		Monaco,
+		Consolas,
+		Liberation Mono,
+		Courier New,
+		monospace !important;
 }
 .text-justify {
 	text-align: justify !important;
@@ -21487,7 +21513,8 @@ a.text-dark:focus {
 	font-style: normal;
 	font-weight: 300;
 	font-display: block;
-	src: url(/assets/fonts/font-awesome/6.4.0/webfonts/fa-light-300.woff2) format('woff2'),
+	src:
+		url(/assets/fonts/font-awesome/6.4.0/webfonts/fa-light-300.woff2) format('woff2'),
 		url(/assets/fonts/font-awesome/6.4.0/webfonts/fa-light-300.ttf) format('truetype');
 }
 .fa,
@@ -21504,7 +21531,8 @@ a.text-dark:focus {
 	font-style: normal;
 	font-weight: 900;
 	font-display: block;
-	src: url(/assets/fonts/font-awesome/6.4.0/webfonts/fa-solid-900.woff2) format('woff2'),
+	src:
+		url(/assets/fonts/font-awesome/6.4.0/webfonts/fa-solid-900.woff2) format('woff2'),
 		url(/assets/fonts/font-awesome/6.4.0/webfonts/fa-solid-900.ttf) format('truetype');
 }
 .fas,
@@ -21525,7 +21553,8 @@ a.text-dark:focus {
 	font-style: normal;
 	font-weight: 400;
 	font-display: block;
-	src: url(/assets/fonts/font-awesome/6.4.0/webfonts/fa-brands-400.woff2) format('woff2'),
+	src:
+		url(/assets/fonts/font-awesome/6.4.0/webfonts/fa-brands-400.woff2) format('woff2'),
 		url(/assets/fonts/font-awesome/6.4.0/webfonts/fa-brands-400.ttf) format('truetype');
 }
 .fab,
@@ -23037,7 +23066,8 @@ a.text-dark:focus {
 }
 @font-face {
 	font-family: printables-custom-icons;
-	src: url(printables-custom-icons.4d32a45524c8e098.ttf?shpu1j) format('truetype'),
+	src:
+		url(printables-custom-icons.4d32a45524c8e098.ttf?shpu1j) format('truetype'),
 		url(printables-custom-icons.fb937c5d86136cd7.woff?shpu1j) format('woff'),
 		url(printables-custom-icons.6fcd1d2b8dd758b0.svg?shpu1j#printables-custom-icons) format('svg');
 	font-weight: 400;
@@ -23830,8 +23860,8 @@ ngb-datepicker .bg-primary {
 @font-face {
 	font-family: Atlas Grotesk Web;
 	src: url(/assets/fonts/atlas-grotesk/AtlasGrotesk-Black-Web.eot);
-	src: url(/assets/fonts/atlas-grotesk/AtlasGrotesk-Black-Web.eot?#iefix)
-			format('embedded-opentype'),
+	src:
+		url(/assets/fonts/atlas-grotesk/AtlasGrotesk-Black-Web.eot?#iefix) format('embedded-opentype'),
 		url(/assets/fonts/atlas-grotesk/AtlasGrotesk-Black-Web.woff2) format('woff2'),
 		url(/assets/fonts/atlas-grotesk/AtlasGrotesk-Black-Web.woff) format('woff');
 	font-weight: 900;
@@ -23842,7 +23872,8 @@ ngb-datepicker .bg-primary {
 @font-face {
 	font-family: Atlas Grotesk Web;
 	src: url(/assets/fonts/atlas-grotesk/AtlasGrotesk-Bold-Web.eot);
-	src: url(/assets/fonts/atlas-grotesk/AtlasGrotesk-Bold-Web.eot?#iefix) format('embedded-opentype'),
+	src:
+		url(/assets/fonts/atlas-grotesk/AtlasGrotesk-Bold-Web.eot?#iefix) format('embedded-opentype'),
 		url(/assets/fonts/atlas-grotesk/AtlasGrotesk-Bold-Web.woff2) format('woff2'),
 		url(/assets/fonts/atlas-grotesk/AtlasGrotesk-Bold-Web.woff) format('woff');
 	font-weight: 700;
@@ -23853,8 +23884,8 @@ ngb-datepicker .bg-primary {
 @font-face {
 	font-family: Atlas Grotesk Web;
 	src: url(/assets/fonts/atlas-grotesk/AtlasGrotesk-Medium-Web.eot);
-	src: url(/assets/fonts/atlas-grotesk/AtlasGrotesk-Medium-Web.eot?#iefix)
-			format('embedded-opentype'),
+	src:
+		url(/assets/fonts/atlas-grotesk/AtlasGrotesk-Medium-Web.eot?#iefix) format('embedded-opentype'),
 		url(/assets/fonts/atlas-grotesk/AtlasGrotesk-Medium-Web.woff2) format('woff2'),
 		url(/assets/fonts/atlas-grotesk/AtlasGrotesk-Medium-Web.woff) format('woff');
 	font-weight: 500;
@@ -23865,7 +23896,8 @@ ngb-datepicker .bg-primary {
 @font-face {
 	font-family: Atlas Grotesk Web;
 	src: url(/assets/fonts/atlas-grotesk/AtlasGrotesk-RegularItalic-Web.eot);
-	src: url(/assets/fonts/atlas-grotesk/AtlasGrotesk-RegularItalic-Web.eot?#iefix)
+	src:
+		url(/assets/fonts/atlas-grotesk/AtlasGrotesk-RegularItalic-Web.eot?#iefix)
 			format('embedded-opentype'),
 		url(/assets/fonts/atlas-grotesk/AtlasGrotesk-RegularItalic-Web.woff2) format('woff2'),
 		url(/assets/fonts/atlas-grotesk/AtlasGrotesk-RegularItalic-Web.woff) format('woff');
@@ -23877,8 +23909,8 @@ ngb-datepicker .bg-primary {
 @font-face {
 	font-family: Atlas Grotesk Web;
 	src: url(/assets/fonts/atlas-grotesk/AtlasGrotesk-Regular-Web.eot);
-	src: url(/assets/fonts/atlas-grotesk/AtlasGrotesk-Regular-Web.eot?#iefix)
-			format('embedded-opentype'),
+	src:
+		url(/assets/fonts/atlas-grotesk/AtlasGrotesk-Regular-Web.eot?#iefix) format('embedded-opentype'),
 		url(/assets/fonts/atlas-grotesk/AtlasGrotesk-Regular-Web.woff2) format('woff2'),
 		url(/assets/fonts/atlas-grotesk/AtlasGrotesk-Regular-Web.woff) format('woff');
 	font-weight: 400;
@@ -23889,8 +23921,8 @@ ngb-datepicker .bg-primary {
 @font-face {
 	font-family: Atlas Grotesk Web;
 	src: url(/assets/fonts/atlas-grotesk/AtlasGrotesk-Light-Web.eot);
-	src: url(/assets/fonts/atlas-grotesk/AtlasGrotesk-Light-Web.eot?#iefix)
-			format('embedded-opentype'),
+	src:
+		url(/assets/fonts/atlas-grotesk/AtlasGrotesk-Light-Web.eot?#iefix) format('embedded-opentype'),
 		url(/assets/fonts/atlas-grotesk/AtlasGrotesk-Light-Web.woff2) format('woff2'),
 		url(/assets/fonts/atlas-grotesk/AtlasGrotesk-Light-Web.woff) format('woff');
 	font-weight: 300;

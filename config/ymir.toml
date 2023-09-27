@@ -2,7 +2,7 @@ printConfig = false
 
 [logging]
 logFile = "log/ymir.log"
-logLevel="ERROR"
+logLevel="DEBUG"
 
 [db]
 host = "localhost"

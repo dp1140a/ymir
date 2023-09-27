@@ -27,7 +27,7 @@ type Model struct {
 	VersionLog  []ModelVersion `json:"versionLog,omitempty"`
 	Description string         `json:"description,omitempty"`
 	Summary     string         `json:"summary,omitempty"`
-	Notes       []Note         `json:"notes,omitempty"`
+	Notes       []Note         `json:"notes"`
 }
 
 type FileType struct {

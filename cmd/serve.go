@@ -11,6 +11,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"ymir/pkg/config"
 	"ymir/pkg/logger"
 	"ymir/pkg/server"
 )
@@ -21,6 +22,7 @@ var serveCmd = &cobra.Command{
 	Short: "Starts the ymir server",
 	Long:  `Describe required config params etc here`,
 	Run: func(cmd *cobra.Command, args []string) {
+		config.InitConfig()
 		serve()
 	},
 }

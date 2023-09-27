@@ -17,10 +17,11 @@ type ModelHandler struct {
 }
 
 const (
-	_MODEL_NAME  = "modelName"
-	_DESCRIPTION = "description"
-	_SUMMARY     = "summary"
-	_TAGS        = "tags"
+	_MODEL_NAME      = "modelName"
+	_MODEL_BASE_PATH = "basePath"
+	_DESCRIPTION     = "description"
+	_SUMMARY         = "summary"
+	_TAGS            = "tags"
 
 	_IMAGE_FILES = "Image_Files"
 	_MODEL_FILES = "Model_Files"
@@ -188,7 +189,11 @@ func (mh ModelHandler) create(w http.ResponseWriter, r *http.Request) {
 		Notes:       []Note{},
 	}
 
-	//fmt.Printf("Form Values: %v\n", r.MultipartForm.Value)
+	if log.GetLevel() == log.DebugLevel {
+		fmt.Printf("Form Values: %q\n", r.MultipartForm.Value)
+		fmt.Printf("%q, %v , %T\n", r.MultipartForm.Value["Other_Files"], len(r.MultipartForm.Value["Other_Files"]), r.MultipartForm.Value["Other_Files"])
+	}
+
 	for k, v := range r.MultipartForm.Value {
 		switch k {
 		case _DESCRIPTION:
@@ -196,23 +201,23 @@ func (mh ModelHandler) create(w http.ResponseWriter, r *http.Request) {
 		case _SUMMARY:
 			model.Summary = v[0]
 		case _IMAGE_FILES:
-			if len(model.Images) > 0 {
+			if len(v) > 0 && v[0] != "" {
 				model.Images = append(model.Images, makeFileType(v)...)
 			}
 		case _MODEL_FILES:
-			if len(model.Images) > 0 {
+			if len(v) > 0 && v[0] != "" {
 				log.Debugf("appending Model File %v", v)
 				model.ModelFiles = append(model.ModelFiles, makeFileType(v)...)
 			}
 		case _MODEL_NAME:
 			model.DisplayName = v[0]
 		case _OTHER_FILES:
-			if len(model.Images) > 0 {
+			if len(v) > 0 && v[0] != "" {
 				log.Debugf("appending Other File %v", v)
 				model.OtherFiles = append(model.OtherFiles, makeFileType(v)...)
 			}
 		case _PRINT_FILES:
-			if len(model.Images) > 0 {
+			if len(v) > 0 && v[0] != "" {
 				log.Debugf("appending Print File %v", v)
 				model.PrintFiles = append(model.PrintFiles, makeFileType(v)...)
 			}
@@ -237,16 +242,26 @@ func (mh ModelHandler) create(w http.ResponseWriter, r *http.Request) {
 PUT /model/{id} [Model{}] (201, 400, 404, 409, 500) -- updates the model with {id} as [Model{}]
 */
 func (mh ModelHandler) update(w http.ResponseWriter, r *http.Request) {
-	var model = &Model{}
+	var model = Model{}
 	err := json.NewDecoder(r.Body).Decode(&model)
 	if err != nil {
 		log.Error(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	fmt.Println(model.Json())
-
+	if log.GetLevel() == log.DebugLevel {
+		fmt.Println(model.Json())
+	}
+	rev, err := mh.Service.(ModelService).UpdateModel(model)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	w.Header().Set("x-powered-by", "bacon")
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	respBody := map[string]string{"status": "ok", "rev": rev}
+	json.NewEncoder(w).Encode(respBody)
 }
 
 /*
@@ -334,13 +349,14 @@ func (mh ModelHandler) exportModelHandler(w http.ResponseWriter, r *http.Request
 
 func (mh ModelHandler) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseMultipartForm(32 << 20) // 32 MB is the maximum file size
+
+	fmt.Println(r.MultipartForm.Value)
 	if err != nil {
 		log.Error(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	//fmt.Printf("FILES: %v\n", r.MultipartForm.Value)
 	fType := ""
 	if _, ok := r.MultipartForm.Value[_MODEL_FILES]; ok {
 		fType = _MODEL_FILES
@@ -352,7 +368,6 @@ func (mh ModelHandler) uploadHandler(w http.ResponseWriter, r *http.Request) {
 		fType = _OTHER_FILES
 	}
 
-	//fmt.Println(fType)
 	// Get the file from the request
 	file, handler, err := r.FormFile(fType)
 	if err != nil {
@@ -361,13 +376,23 @@ func (mh ModelHandler) uploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	key, err := mh.Service.(ModelService).UploadFiles(file, handler.Filename)
+	/**
+	If we have a basePath param this is not for a new model.
+	*/
+	basePath := r.URL.Query().Get(_MODEL_BASE_PATH)
+	key := ""
+	if basePath != "" {
+		log.Infof("base path: %v", basePath)
+		key, err = mh.Service.(ModelService).UploadFilesExistingModel(file, handler.Filename, basePath)
+
+	} else { // New Model
+		key, err = mh.Service.(ModelService).UploadFilesNewModel(file, handler.Filename)
+
+	}
 	if err != nil {
 		log.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
 	}
-
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(key))
@@ -404,7 +429,7 @@ func (mh ModelHandler) fetchSTLThumbnail(w http.ResponseWriter, r *http.Request)
 }
 
 func (mh ModelHandler) addNote(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
+	err := r.ParseMultipartForm(32 << 20) // 32 MB is the maximum file size
 	if err != nil {
 		log.Error(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -416,7 +441,7 @@ func (mh ModelHandler) addNote(w http.ResponseWriter, r *http.Request) {
 		Rev: r.FormValue("_rev"),
 		Notes: []Note{
 			{
-				Text: r.FormValue("text"),
+				Text: r.FormValue("noteText"),
 				Date: time.Now(),
 			},
 		},
