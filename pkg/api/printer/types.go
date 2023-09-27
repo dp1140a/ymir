@@ -19,7 +19,7 @@ apikey="ABC123"
 type Printer struct {
 	Id          string      `json:"_id,omitempty"`
 	Rev         string      `json:"_rev,omitempty"`
-	DisplayName string      `json:"displayName,omitempty"`
+	DisplayName string      `json:"printerName,omitempty"`
 	URL         string      `json:"url"`
 	APIType     string      `json:"apiType"`
 	APIKey      string      `json:"apiKey"`

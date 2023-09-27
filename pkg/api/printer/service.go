@@ -43,9 +43,9 @@ func (ps PrintersService) ListPrinters() ([]Printer, error) {
 
 	query := `{
 		"selector": {
-			"printer": {"$regex": ".+"}
+			"printerName": {"$regex": ".+"}
 		},
-		"fields": ["_id", "_rev", "url", "description", "displayName", "tags" ]
+		"fields": ["_id", "_rev", "url", "printerName", "tags", "location", "apiKey", "type"]
 	}`
 	var q interface{}
 	_ = json.Unmarshal([]byte(query), q)
@@ -70,20 +70,49 @@ func (ps PrintersService) ListPrinters() ([]Printer, error) {
 }
 
 func (ps PrintersService) GetPrinter(id string) (printer Printer, err error) {
-	return Printer{}, nil
+	row := ps.DataStore.GetDB().Get(context.TODO(), id)
+	printer = Printer{}
+	if err = row.ScanDoc(&printer); err != nil {
+		log.Error(err)
+		return printer, err
+	}
+
+	return printer, nil
 }
 
-func (ps PrintersService) CreatePrinter(Printer Printer) (err error) {
+func (ps PrintersService) CreatePrinter(printer Printer) (err error) {
+	ctx := context.TODO()
+	printer.Id = utils.GenId()
+	//fmt.Println(printer.Json())
 
+	docId, rev, err := ps.DataStore.GetDB().CreateDoc(ctx, printer)
+	if err != nil {
+		log.Errorf("error adding printer: %v", err)
+		return err
+	}
+
+	log.Infof("added printer %v in db with docid %v and rev %v", printer.Id, docId, rev)
 	return nil
 }
 
-func (ps PrintersService) UpdatePrinter(Printer Printer) (err error) {
+func (ps PrintersService) UpdatePrinter(printer Printer) (err error) {
+	ctx := context.TODO()
 
+	rev, err := ps.DataStore.GetDB().Put(ctx, printer.Id, printer)
+	if err != nil {
+		log.Errorf("error updating printer: %v", err)
+		return err
+	}
+	log.Infof("updated printer %v in db with rev %v", printer.Id, rev)
 	return nil
 }
 
 func (ps PrintersService) DeletePrinter(id string, rev string) error {
+	_, err := ps.DataStore.GetDB().Delete(context.TODO(), id, rev)
+	if err != nil {
+		log.Errorf("error deleting printer: %v", err)
+		return err
+	}
 
 	return nil
 }

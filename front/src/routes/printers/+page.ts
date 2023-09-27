@@ -7,6 +7,6 @@ export const load = async ({ fetch, params }) => {
     throw `Error while fetching data from ${url} (${res.status} ${res.statusText}).`;
   }
   const printers = await res.json();
-  //console.log(models)
+  console.log(printers)
   return { url, printers };
-};
+}
