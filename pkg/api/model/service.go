@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -36,14 +37,31 @@ func NewModelService() (modelService api.Service) {
 	ds.Connect()
 	ms.DataStore = ds
 
-	utils.MakeDirIfNotExists(ms.config.UploadsTempDir)
-	utils.MakeDirIfNotExists(ms.config.ModelsDir)
+	err := makeDirIfNotExists(ms.config.UploadsTempDir)
+	if err != nil {
+		return nil
 
+	}
+	makeDirIfNotExists(ms.config.ModelsDir)
+	if err != nil {
+		return nil
+	}
 	return ms
 }
 
 func (ms ModelService) GetName() (name string) {
 	return ms.name
+}
+
+func makeDirIfNotExists(path string) error {
+	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
+		err := os.MkdirAll(path, os.ModePerm)
+		if err != nil {
+			log.Errorf("error creating dir %v: %v", path, err)
+			return err
+		}
+	}
+	return nil
 }
 
 func (ms ModelService) GetModel(id string) (model Model, err error) {
@@ -160,15 +178,16 @@ func (ms ModelService) CreateModel(model Model) (err error) {
 	}
 }
 
-func (ms ModelService) UpdateModel(model Model) (err error) {
+func (ms ModelService) UpdateModel(model Model) (rev string, err error) {
 	ctx := context.TODO()
 
-	rev, err := ms.DataStore.GetDB().Put(ctx, model.Id, model)
+	rev, err = ms.DataStore.GetDB().Put(ctx, model.Id, model)
 	if err != nil {
-		return err
+		log.Error(err)
+		return "", err
 	} else {
 		log.Infof("updated model %v in db with rev %v", model.Id, rev)
-		return nil
+		return rev, nil
 	}
 }
 
@@ -246,32 +265,80 @@ func (ms ModelService) GetModelsByTag(tag string) ([]Model, error) {
 	return docs, nil
 }
 
-func (ms ModelService) UploadFiles(file multipart.File, filename string) (key string, err error) {
-
-	defer file.Close()
-
-	//Generate key
-	tK := utils.GenId()
-	utils.MakeDirIfNotExists(fmt.Sprintf("%s/%s", ms.config.UploadsTempDir, tK))
-	key = fmt.Sprintf("%s/%s", tK, filename)
-	path := fmt.Sprintf("%s/%s", ms.config.UploadsTempDir, key)
-	log.Debugf("upload filepath: %v", path)
+func writeFile(file *multipart.File, path string) error {
 	// Create a new file in the uploads directory
 	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		log.Error(err)
-		return "", err
+		return err
 	}
 	defer f.Close()
 
 	// Copy the contents of the file to the new file
-	_, err = io.Copy(f, file)
+	_, err = io.Copy(f, *file)
 	if err != nil {
 		log.Error(err)
-		return "", err
+		return err
+	}
+	return nil
+}
+
+func (ms ModelService) UploadFilesExistingModel(file multipart.File, filename string, basePath string) (key string, err error) {
+	defer file.Close()
+
+	//Look a folder named "files" in the model folder
+	entries, err := os.ReadDir(basePath)
+	if err != nil {
+		log.Fatal(err)
 	}
 
+	hasFilesDir := false
+	for _, dir := range entries {
+		if dir.Name() == "files" {
+			hasFilesDir = true
+			break
+		}
+	}
+
+	var path string
+	if hasFilesDir {
+		//If has files dir then move the new file there
+		key = filepath.Join("files", filename)
+		path = filepath.Join(basePath, key)
+	} else {
+		//else move to basePath
+		key = filename
+		path = filepath.Join(basePath, key)
+	}
+	log.Debugf("upload filepath: %v", path)
+	err = writeFile(&file, path)
+	if err != nil {
+		log.Errorf("error writing file: %v", err)
+		return key, err
+	}
 	return key, nil
+}
+
+func (ms ModelService) UploadFilesNewModel(file multipart.File, filename string) (key string, err error) {
+	defer file.Close()
+
+	//Generate key
+	tK := utils.GenId()
+	err = makeDirIfNotExists(filepath.Join(ms.config.UploadsTempDir, tK))
+	if err != nil {
+		log.Debugf("error making upload dir: %v", err)
+		return "", err
+	}
+	key = filepath.Join(tK, filename)
+	path := filepath.Join(ms.config.UploadsTempDir, key)
+	log.Debugf("upload filepath: %v", path)
+
+	err = writeFile(&file, path)
+	if err != nil {
+		log.Errorf("error writing file: %v", err)
+		return "", err
+	}
+	return path, nil
 }
 
 func (ms ModelService) FetchModelImage(imagePath string) (imageBytes []byte, err error) {
@@ -302,6 +369,8 @@ func (ms ModelService) FetchSTLThumbnail(filepath string) string {
 }
 
 func (ms ModelService) AddNote(model Model) (err error) {
+	fmt.Println(model.Json())
+
 	ctx := context.TODO()
 
 	existingModel, err := ms.GetModel(model.Id)
@@ -333,15 +402,20 @@ func (ms ModelService) ParseGCode(path string) (gcode.GCodeMetaData, error) {
 	return g.MetaData, nil
 }
 
-func (ms ModelService) organize(model *Model) error {
+func (ms ModelService) organize(model *Model) (err error) {
 	mDir := filepath.Join(ms.config.ModelsDir, model.Id)
-	utils.MakeDirIfNotExists(mDir)
+	log.Debugf("model dir: %v", mDir)
+	err = makeDirIfNotExists(mDir)
+	if err != nil {
+		return err
+	}
+	model.BasePath = mDir
 
 	moveAndClean := func(itemPath string) error {
 		from := itemPath
 		fDir, fName := filepath.Split(itemPath)
 		to := filepath.Join(mDir, fName)
-		log.Debugf("moving model from:\n\t%v\nto:\n\t%v\n", from, to)
+		log.Debugf("moving model from: %v to: %v ", from, to)
 
 		if err := os.Rename(from, to); err != nil {
 			log.Error(err)
@@ -357,7 +431,7 @@ func (ms ModelService) organize(model *Model) error {
 	}
 
 	updatePaths := func(files []FileType) error {
-		log.Debugf("files: %v\n", len(files))
+		log.Debugf("num files: %v", len(files))
 		for i, file := range files {
 			err := moveAndClean(file.Path)
 			if err != nil {
@@ -368,21 +442,25 @@ func (ms ModelService) organize(model *Model) error {
 		return nil
 	}
 
+	log.Debugf("ModelFiles:")
 	if err := updatePaths(model.ModelFiles); err != nil {
 		log.Error(err)
 		return err
 	}
 
+	log.Debugf("OtherFiles:")
 	if err := updatePaths(model.OtherFiles); err != nil {
 		log.Error(err)
 		return err
 	}
 
+	log.Debugf("PrintFiles:")
 	if err := updatePaths(model.PrintFiles); err != nil {
 		log.Error(err)
 		return err
 	}
 
+	log.Debugf("Images:")
 	if err := updatePaths(model.Images); err != nil {
 		log.Error(err)
 		return err
