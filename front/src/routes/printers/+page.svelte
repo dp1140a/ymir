@@ -33,8 +33,8 @@
 
 <h1 class="h1 mt-4">Printers</h1>
 <span>{printers.length} Printers</span>
-<div class="flex flex-row w-[1200px]">
-  <div class="w-1/3 px-4 border border-black">
+<div class="flex flex-row w-full">
+  <div class="w-1/5 pr-6">
     <h1 class="font-semibold">Model Filter</h1>
     <form>
       <label class="label mb-2" for="">
@@ -63,11 +63,14 @@
       </label>
     </form>
   </div>
-  <div class="w-2/3 px-6 border border-black">
+  <div class="w-full pl-8">
+    <div class="flex justify-end"><a class="btn btn-sm variant-filled-warning mb-4" href="/printers/add"> + Add Printer </a></div>
+    <div class="w-full">
       {#if (searchTerm !== '' && filteredPrinters.length === 0) || printers.length === 0}
         No Models Found. Either Create a model or alter your search criteria.
       {:else if filteredPrinters.length > 0}
         {#each filteredPrinters as printer, i}
+          {i}
           <PrinterCard {printer} />
         {/each}
 
@@ -76,6 +79,7 @@
           <PrinterCard {printer} />
         {/each}
       {/if}
+    </div>
   </div>
 </div>
 

@@ -2,7 +2,9 @@ package printer
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -11,7 +13,7 @@ import (
 )
 
 const (
-	_PRINTER_NAME  = "displayName"
+	_PRINTER_NAME  = "printerName"
 	_URL           = "url"
 	_API_KEY       = "apiKey"
 	_API_TYPE      = "apiType"
@@ -105,7 +107,7 @@ func (ph PrinterHandler) create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	printer := Printer{
-		DisplayName: "",
+		PrinterName: "",
 		URL:         "",
 		APIType:     "octoprint",
 		APIKey:      "",
@@ -120,12 +122,23 @@ func (ph PrinterHandler) create(w http.ResponseWriter, r *http.Request) {
 		Tags:      []string{},
 	}
 
+	fmt.Println(r.MultipartForm.Value)
 	for k, v := range r.MultipartForm.Value {
 		switch k {
 		case _PRINTER_NAME:
-			printer.DisplayName = v[0]
+			printer.PrinterName = v[0]
 		case _URL:
-			printer.URL = v[0]
+			u, err := url.Parse(v[0])
+			if err != nil {
+				log.Error(err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			fmt.Println(u.Scheme)
+			if u.Scheme == "" {
+				u.Scheme = "http"
+			}
+			printer.URL = u.String()
 		case _API_KEY:
 			printer.APIKey = v[0]
 		case _LOCATION:
@@ -169,10 +182,13 @@ DELETE /Printer/{id} (200, 404, 500) -- deletes the Printer with {id}
 */
 func (ph PrinterHandler) delete(w http.ResponseWriter, r *http.Request) {
 	printerId := chi.URLParam(r, "id")
-	rev := chi.URLParam(r, "rev")
+	rev := r.URL.Query().Get("rev")
+	if log.GetLevel() == log.DebugLevel {
+		fmt.Printf("id : %v / rev: %v\n", printerId, rev)
+	}
 	err := ph.Service.(PrintersService).DeletePrinter(printerId, rev)
 	if err != nil {
-		log.Errorf("delet model handler error: %v", err)
+		log.Errorf("delete model handler error: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -208,7 +224,28 @@ func (ph PrinterHandler) listAll(w http.ResponseWriter, r *http.Request) {
 /*
 GET /Printer/{id} (200, 401, 404, 500) -- gets Printer with {id}
 */
-func (ph PrinterHandler) inspect(w http.ResponseWriter, r *http.Request) {}
+func (ph PrinterHandler) inspect(w http.ResponseWriter, r *http.Request) {
+	printerId := chi.URLParam(r, "id")
+	log.Debugf("inspecting printer: %v", printerId)
+	printer, err := ph.Service.(PrintersService).GetPrinter(printerId)
+	if err != nil {
+		log.Errorf("list all models service error: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	js, err := json.Marshal(printer)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write(js)
+	if err != nil {
+		log.Errorf("http write error: %v", err)
+	}
+}
 
 func (ph PrinterHandler) corsPreflightHandler(w http.ResponseWriter, r *http.Request) {
 	log.Info("CORS Request")

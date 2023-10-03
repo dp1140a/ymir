@@ -3,6 +3,7 @@ package printer
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	log "github.com/sirupsen/logrus"
 	"ymir/pkg/api"
@@ -66,6 +67,10 @@ func (ps PrintersService) ListPrinters() ([]Printer, error) {
 		docs = append(docs, *doc)
 	}
 
+	if log.GetLevel() == log.DebugLevel {
+		fmt.Printf("%v printers returned\n", len(docs))
+	}
+
 	return docs, nil
 }
 
@@ -83,7 +88,9 @@ func (ps PrintersService) GetPrinter(id string) (printer Printer, err error) {
 func (ps PrintersService) CreatePrinter(printer Printer) (err error) {
 	ctx := context.TODO()
 	printer.Id = utils.GenId()
-	//fmt.Println(printer.Json())
+	if log.GetLevel() == log.DebugLevel {
+		fmt.Println(printer.Json())
+	}
 
 	docId, rev, err := ps.DataStore.GetDB().CreateDoc(ctx, printer)
 	if err != nil {
