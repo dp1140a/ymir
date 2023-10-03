@@ -1,4 +1,4 @@
-import { _apiUrl } from '../+layout';
+import { _apiUrl } from '$lib/Utils';
 
 export const load = async ({ fetch, params }) => {
 	const url = _apiUrl('/v1/model');
