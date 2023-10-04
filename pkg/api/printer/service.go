@@ -56,7 +56,7 @@ func (ps PrintersService) ListPrinters() ([]Printer, error) {
 		return nil, err
 	}
 
-	var docs []Printer
+	docs := []Printer{}
 	for rows.Next() {
 		doc := &Printer{}
 		err = rows.ScanDoc(doc)
