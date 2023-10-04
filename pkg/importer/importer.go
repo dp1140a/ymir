@@ -78,6 +78,7 @@ func (i *Importer) walk(path string, m *model.Model) error {
 					OtherFiles:  []model.FileType{},
 					Images:      []model.FileType{},
 					DateCreated: time.Now(),
+					Notes:       []model.Note{},
 				}
 			}
 
