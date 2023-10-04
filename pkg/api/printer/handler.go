@@ -168,13 +168,26 @@ func (ph PrinterHandler) create(w http.ResponseWriter, r *http.Request) {
 PUT /Printer/{id} [Printer{}] (201, 400, 404, 409, 500) -- updates the Printer with {id} as [Printer{}]
 */
 func (ph PrinterHandler) update(w http.ResponseWriter, r *http.Request) {
-	var printer = &Printer{}
+	var printer = Printer{}
 	err := json.NewDecoder(r.Body).Decode(&printer)
 	if err != nil {
 		log.Error(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	if log.GetLevel() == log.DebugLevel {
+		fmt.Println(printer.Json())
+	}
+	rev, err := ph.Service.(PrintersService).UpdatePrinter(printer)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	w.Header().Set("x-powered-by", "bacon")
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	respBody := map[string]string{"status": "ok", "rev": rev}
+	json.NewEncoder(w).Encode(respBody)
 }
 
 /*

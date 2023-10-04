@@ -8,7 +8,7 @@ export const load = async ({ fetch, params }) => {
 		throw `Error while fetching data from ${url} (${res.status} ${res.statusText}).`;
 	}
 	const models = await res.json();
-	//console.log(models)
+	console.log(models)
 	return { url, models };
 };
 

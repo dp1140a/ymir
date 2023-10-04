@@ -102,16 +102,16 @@ func (ps PrintersService) CreatePrinter(printer Printer) (err error) {
 	return nil
 }
 
-func (ps PrintersService) UpdatePrinter(printer Printer) (err error) {
+func (ps PrintersService) UpdatePrinter(printer Printer) (rev string, err error) {
 	ctx := context.TODO()
 
-	rev, err := ps.DataStore.GetDB().Put(ctx, printer.Id, printer)
+	rev, err = ps.DataStore.GetDB().Put(ctx, printer.Id, printer)
 	if err != nil {
 		log.Errorf("error updating printer: %v", err)
-		return err
+		return "", err
 	}
 	log.Infof("updated printer %v in db with rev %v", printer.Id, rev)
-	return nil
+	return rev, nil
 }
 
 func (ps PrintersService) DeletePrinter(id string, rev string) error {

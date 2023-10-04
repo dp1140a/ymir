@@ -2,9 +2,9 @@
   import { Accordion, AccordionItem, type ModalSettings, modalStore } from "@skeletonlabs/skeleton";
   import RadialGauge from "$lib/RadialGauge.svelte";
   import { GetPrinterFiles, CheckPrinterStatus, type PrinterStatus, GetPrinterJob } from "$lib/Printer";
-  import { _apiUrl, SecondsPrettyPrint } from "$lib/Utils.js";
+  import { _apiUrl, handleError, SecondsPrettyPrint } from "$lib/Utils.js";
   import type {JobInformation} from "$lib/Job"
-  import { goto } from "$app/navigation";
+  import { goto, invalidateAll } from "$app/navigation";
 
   export let data;
 
@@ -107,6 +107,54 @@
     errorMessage = err.detail.message;
     errorVisible  = true;
   }
+
+  //Model Updated Modal
+  export const showUpdated = (title:string, body:string, reload: boolean) => {
+    const modal: ModalSettings = {
+      type: 'alert',
+      title: title,
+      body: body,
+      buttonTextCancel: 'Cool!',
+      //response: (e) => { invalidateAll() }
+    };
+
+    if (reload) {
+      modal.response = (e) => { reloadPage()}
+    }
+    modalStore.trigger(modal);
+  };
+
+  const reloadPage = async() => {
+    await invalidateAll()
+    printer = data.printer;
+  }
+
+  //Save Model
+  let saveDisabled = true;
+  function needsSave() {
+    saveDisabled = false;
+    //console.log(model)
+  }
+
+  const updatePrinter = async () => {
+    //console.log(model)
+    const response = await fetch(_apiUrl(`/v1/printer/${printer._id}`), {
+      method: 'PUT',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(printer)
+    }).then(handleError) // skips to .catch if error is thrown
+      .then((response) => {
+        printer._rev = response.rev;
+        showUpdated('Complete', 'Printer has been successfully Updated', false);
+        saveDisabled = true
+      }).catch((error) => {
+        let errorMessage = 'Oops!  There was an error updating the printer.<br/>Response was: ' + error;
+        showUpdated(error, errorMessage, true);
+      })
+  }
 </script>
 <!-- Error Div -->
 <div>
@@ -155,8 +203,25 @@
     <img src="/mk3s.svg" class="">
   </div>
   <div class="flex flex-col ">
+    <div><span class="h6 text-xs float-right">*click to edit</span></div>
     <div class="">
-      <div class="text-xl">Location: {printer.location.name}</div>
+      <span class="h4 mr-2">URL:</span><span contenteditable="true" bind:textContent={printer.url} on:input={needsSave} class="editable p-1 pr-10">{printer.url}</span>
+    </div>
+    <div class="">
+    <span class="h4 mr-2">Api Key:</span><span contenteditable="true" bind:textContent={printer.apiKey} on:input={needsSave} class="editable p-1 pr-10">{printer.apiKey}</span>
+    </div>
+    <div class="">
+    <span class="h4 mr-2">API Type:</span><span>{printer.apiType}</span>
+    </div>
+    <div class="">
+  <span class="h4 mr-2">Location:</span><span contenteditable="true" bind:textContent={printer.location.name} on:input={needsSave}
+                                              class="editable p-1 pr-10">{printer.location.name}</span>
+    </div>
+    <div class="">
+      <button disabled={saveDisabled} type="button" class="btn variant-filled-error float-right" on:click={updatePrinter}>
+        <span><i class="fa-regular fa-floppy-disk"></i></span>
+        <span>Save Changes</span>
+      </button>
     </div>
     <hr class="!border-t-2 my-4" />
     <div class="">
@@ -280,5 +345,20 @@
 
     input[type="file"] {
         display: none;
+    }
+
+    .attr {
+        color: #2a2a2a;
+        font-size: 11px;
+    }
+
+    .editable:hover,
+    [contenteditable="true"]:active,
+    [contenteditable="true"]:focus{
+        background: rgb(211, 211, 211);
+        border: 1px solid rgb(133,133,133);
+        border-radius: 4px;
+        outline:none;
+        padding: 8px;
     }
 </style>

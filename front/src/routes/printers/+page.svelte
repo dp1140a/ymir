@@ -67,10 +67,9 @@
     <div class="flex justify-end"><a class="btn btn-sm variant-filled-warning mb-4" href="/printers/add"> + Add Printer </a></div>
     <div class="w-full">
       {#if (searchTerm !== '' && filteredPrinters.length === 0) || printers.length === 0}
-        No Models Found. Either Create a model or alter your search criteria.
+        No Printers Found. Either add a printer or alter your search criteria.
       {:else if filteredPrinters.length > 0}
         {#each filteredPrinters as printer, i}
-          {i}
           <PrinterCard {printer} />
         {/each}
 
