@@ -126,7 +126,7 @@
 		</AppBar>
 	</svelte:fragment>
 	<!-- Page Route Content -->
-	<div id="content" class="w-fit mx-auto px-8 pt-4">
+	<div id="content" class="w-full mx-auto px-8 pt-4">
 		<slot />
 	</div>
 </AppShell>

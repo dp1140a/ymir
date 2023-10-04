@@ -6,7 +6,7 @@
 	import FilePond, { registerPlugin, supported } from 'svelte-filepond'; //https://pqina.nl/filepond/docs/
 	import FilePondPluginFileMetadata from 'filepond-plugin-file-metadata';
 	import { _apiUrl } from "$lib/Utils";
- 	import type {GCodeMetaData, ModelFileType} from "$lib/Types";
+ 	import type {GCodeMetaData, ModelFileType} from "$lib/Model";
 	import { CheckFileType, FileUploadError, imageTypes, modelTypes, otherTypes, printTypes } from "$lib/Files";
 	import type { FilePondFile } from "filepond";
 	//import FilePondPluginImagePreview from "filepond-plugin-image-preview";

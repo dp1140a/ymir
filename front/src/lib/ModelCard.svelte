@@ -3,7 +3,7 @@
 	import { expoIn } from 'svelte/easing';
 	import { base } from '$app/paths';
 	import { _apiUrl } from './Utils';
-	import type { Model } from "$lib/Types"
+	import type { Model } from "$lib/Model"
 
 	export let model:Model
 

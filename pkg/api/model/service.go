@@ -18,6 +18,7 @@ import (
 	"ymir/pkg/db"
 	"ymir/pkg/gcode"
 	"ymir/pkg/stl"
+	"ymir/pkg/utils"
 )
 
 type ModelService struct {
@@ -158,7 +159,7 @@ func addFilesToZip(w *zip.Writer, basePath, baseInZip string) error {
 
 func (ms ModelService) CreateModel(model Model) (err error) {
 	ctx := context.TODO()
-	model.Id = GenId()
+	model.Id = utils.GenId()
 	//fmt.Println(model.Json())
 	// We want to organize all the files and the model
 	err = ms.organize(&model)
@@ -322,7 +323,7 @@ func (ms ModelService) UploadFilesNewModel(file multipart.File, filename string)
 	defer file.Close()
 
 	//Generate key
-	tK := GenId()
+	tK := utils.GenId()
 	err = makeDirIfNotExists(filepath.Join(ms.config.UploadsTempDir, tK))
 	if err != nil {
 		log.Debugf("error making upload dir: %v", err)

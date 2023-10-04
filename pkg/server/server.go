@@ -10,6 +10,7 @@ import (
 	"ymir/pkg"
 	"ymir/pkg/api"
 	"ymir/pkg/api/model"
+	"ymir/pkg/api/printer"
 	"ymir/pkg/logger/httplogger"
 
 	chiprometheus "github.com/766b/chi-prometheus"
@@ -65,6 +66,7 @@ func NewServer() (*Server, error) {
 	//Init Handlers and Services
 	s.Router.Mount(fmt.Sprintf("%s/debug", _API_VERSION), middleware.Profiler())
 	s.Handlers = append(s.Handlers, model.NewModelHandler())
+	s.Handlers = append(s.Handlers, printer.NewPrinterHandler())
 
 	//Append the base and static handlers Last
 	s.Handlers = append(s.Handlers, api.NewBaseHandler(s.HttpLogger, s.Router))

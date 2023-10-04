@@ -1,7 +1,6 @@
 package model
 
 import (
-	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -77,12 +76,4 @@ func (m *Model) WriteModel(dir string) error {
 func (m *Model) Json() string {
 	data, _ := json.MarshalIndent(m, "", "\t")
 	return string(data)
-}
-
-func GenId() string {
-	buf := make([]byte, 8)
-	// then we can call rand.Read.
-	_, _ = rand.Read(buf)
-
-	return fmt.Sprintf("%x", buf)
 }

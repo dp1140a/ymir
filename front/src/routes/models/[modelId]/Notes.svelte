@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { _apiUrl } from "../../+layout";
-
 	export let id = '';
 	export let rev = '';
 	export let notes = [];
