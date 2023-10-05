@@ -268,7 +268,20 @@ func (mh ModelHandler) update(w http.ResponseWriter, r *http.Request) {
 DELETE /model/{id} (200, 404, 500) -- deletes the model with {id}
 */
 func (mh ModelHandler) delete(w http.ResponseWriter, r *http.Request) {
+	modelId := chi.URLParam(r, "id")
+	rev := r.URL.Query().Get("rev")
+	if log.GetLevel() == log.DebugLevel {
+		fmt.Printf("id : %v / rev: %v\n", modelId, rev)
+	}
+	err := mh.Service.(ModelService).DeleteModel(modelId, rev)
+	if err != nil {
+		log.Errorf("delete printer handler error: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 }
 
 /*
