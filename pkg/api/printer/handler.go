@@ -201,7 +201,7 @@ func (ph PrinterHandler) delete(w http.ResponseWriter, r *http.Request) {
 	}
 	err := ph.Service.(PrintersService).DeletePrinter(printerId, rev)
 	if err != nil {
-		log.Errorf("delete model handler error: %v", err)
+		log.Errorf("delete printer handler error: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
