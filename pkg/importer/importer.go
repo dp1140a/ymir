@@ -55,7 +55,8 @@ func (i *Importer) walk(path string, m *model.Model) error {
 	dirs, _ := os.ReadDir(path)
 	fmt.Printf("  %v entries\n", len(dirs))
 	for _, f := range dirs {
-		fName := fmt.Sprintf("%v/%v", filepath.Base(path), f.Name())
+		relPath, _ := filepath.Rel(i.baseDir, path)
+		fName := fmt.Sprintf("%v/%v", relPath, f.Name())
 		if f.IsDir() {
 			if onlyDirectories(path) {
 				fmt.Printf("   %v is only directories moving on\n", path)
@@ -68,9 +69,10 @@ func (i *Importer) walk(path string, m *model.Model) error {
 
 		} else {
 			if m == nil {
+				fmt.Println("Creating Model:")
 				m = &model.Model{
 					Id:          utils.GenId(),
-					DisplayName: cleanDisplayName(filepath.Base(filepath.Dir(fName))),
+					DisplayName: cleanDisplayName(filepath.Base(i.baseDir)),
 					BasePath:    path,
 					Tags:        i.Tags,
 					ModelFiles:  []model.FileType{},
@@ -95,10 +97,12 @@ func (i *Importer) walk(path string, m *model.Model) error {
 				continue
 			}
 			if slices.Contains(PRINT_TYPES, filepath.Ext(f.Name())[1:]) {
+				fmt.Printf("  Adding Print File: %v\n", f.Name())
 				m.PrintFiles = append(m.PrintFiles, model.FileType{Path: fName})
 				continue
 			}
 			if slices.Contains(IMAGE_TYPES, filepath.Ext(f.Name())[1:]) {
+				fmt.Printf("  Adding Image: %v\n", f.Name())
 				m.Images = append(m.Images, model.FileType{Path: fName})
 				continue
 			}
@@ -106,6 +110,7 @@ func (i *Importer) walk(path string, m *model.Model) error {
 				if f.Name() == "model.json" {
 					continue
 				}
+				fmt.Printf("  Adding Other File: %v\n", f.Name())
 				m.OtherFiles = append(m.OtherFiles, model.FileType{Path: f.Name()})
 				continue
 			}
@@ -125,6 +130,7 @@ func (i *Importer) walk(path string, m *model.Model) error {
 var nonAlphanumericRegex = regexp.MustCompile(`[^a-zA-Z0-9.\- ]+`)
 
 func cleanDisplayName(str string) string {
+	fmt.Printf("MODEL NAME: %v\n", nonAlphanumericRegex.ReplaceAllString(str, " "))
 	return nonAlphanumericRegex.ReplaceAllString(str, " ")
 }
 func writeModel(path string, model *model.Model) error {
