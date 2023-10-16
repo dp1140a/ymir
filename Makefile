@@ -17,12 +17,12 @@ REPORT_DIR = $(WD)/reports
 M = $(shell printf "\033[34;1m\033[0m")
 N = $(shell printf '\u2705')
 DONE="$(N) Done: "
-VERSION := $(shell git describe --exact-match --tags 2>/dev/null)
+VERSION :=$(file < VERSION)
 ifndef VERSION
 	VERSION := dev
 endif
 GIT_TAG := $(shell git describe --exact-match --tags 2>git_describe_error.tmp; rm -f git_describe_error.tmp)
-GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
+GIT_BRANCH := $(shell git branch --show-current)
 GIT_COMMIT := $(shell git rev-parse HEAD)
 
 MAKEFLAGS += --no-print-directory
@@ -187,7 +187,7 @@ debug:
 	$(info ARCHES=$(ARCHES))
 	$(info OSES=$(OSES))
 	$(info LDFLAGS=$(LDFLAGS))
-	@echo $(DONE) "Debug\n"
+	@echo -e $(DONE) "Debug\n"
 
 .PHONY: help
 help: Makefile

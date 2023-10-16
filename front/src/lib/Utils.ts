@@ -10,7 +10,7 @@ export const handleError = (response: Response): Promise<any> => {
 	if (!response.ok) {
 		throw Error(response.statusText);
 	}
-		return response.json();
+	return response.json();
 };
 
 /**
@@ -18,7 +18,7 @@ export const handleError = (response: Response): Promise<any> => {
  * @param path
  */
 
-export const _apiUrl = (path: string):string => {
+export const _apiUrl = (path: string): string => {
 	//console.log(`${import.meta.env.VITE_API_URL}`);
 	let base = '';
 	if (import.meta.env.DEV) {
@@ -32,6 +32,15 @@ export const _apiUrl = (path: string):string => {
  * @param path
  * @constructor
  */
-export const Basename = (path:string): string => {
+export const Basename = (path: string): string => {
 	return path.split('/').reverse()[0];
+};
+
+export const SecondsPrettyPrint = (totalSeconds: number): string => {
+	let hours: number = Math.floor(totalSeconds / 3600);
+	totalSeconds %= 3600;
+	let minutes: number = Math.floor(totalSeconds / 60);
+	let seconds: string = (totalSeconds % 60).toFixed(0);
+
+	return `${hours}H ${minutes}M ${seconds}S`;
 };

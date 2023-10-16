@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { base } from '$app/paths';
-	import { env } from '$env/dynamic/public';
+	import {page} from "$app/stores";
 
 	// The ordering of these imports is critical to your app working properly
 	import '../theme.postcss';
 	import '@skeletonlabs/skeleton/styles/skeleton.css';
-	import { TabGroup, Tab, TabAnchor } from '@skeletonlabs/skeleton';
+	import { TabGroup, TabAnchor } from '@skeletonlabs/skeleton';
 	import '../app.postcss';
 	import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom';
 	import { Modal, storePopup } from '@skeletonlabs/skeleton';
@@ -64,9 +64,10 @@
 					border="border-b border-error-400-500-token"
 					class="bg-surface-100-800-token w-full"
 				>
+					<!--selected={tabsBottomNav === '/models'}-->
 					<TabAnchor
 						href="/models"
-						selected={tabsBottomNav === '/models'}
+						selected={$page.url.pathname.includes('/models')}
 						on:click={() => (tabsBottomNav = '/models')}
 					>
 						<svelte:fragment slot="lead"><i class="fa-solid fa-cubes" /></svelte:fragment>
@@ -74,7 +75,7 @@
 					</TabAnchor>
 					<TabAnchor
 						href="/printers"
-						selected={tabsBottomNav === '/printers'}
+						selected={$page.url.pathname.includes('/printers')}
 						on:click={() => (tabsBottomNav = '/printers')}
 					>
 						<svelte:fragment slot="lead"><i class="fa-solid fa-print" /></svelte:fragment>
@@ -82,7 +83,7 @@
 					</TabAnchor>
 					<TabAnchor
 						href="/docs"
-						selected={tabsBottomNav === '/docs'}
+						selected={$page.url.pathname.includes('/docs')}
 						on:click={() => (tabsBottomNav = '/docs')}
 					>
 						<svelte:fragment slot="lead"><i class="fa-solid fa-book" /></svelte:fragment>
@@ -126,7 +127,7 @@
 		</AppBar>
 	</svelte:fragment>
 	<!-- Page Route Content -->
-	<div id="content" class="w-fit mx-auto px-8 pt-4">
+	<div id="content" class="w-full mx-auto px-8 pt-4">
 		<slot />
 	</div>
 </AppShell>

@@ -41,4 +41,4 @@ export interface GCodeMetaData {
 	thumbnail: string;
 }
 
-export default {}
+export default {};
