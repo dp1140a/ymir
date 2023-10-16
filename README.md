@@ -160,9 +160,4 @@ A users manual is coming soon.
     * local filesystem -- using model.json files
     * Genjidb -- an embedded db
 * Full Docs site
-* Printers
-  * Add
-  * Manage
-  * Delete
-* Ability to print a model <-- This will be a v1.0 release feature 
 * Clean up the codebase -- This was my first time creating a svelte app
