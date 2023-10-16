@@ -1,3 +1,5 @@
+import type { Printer } from "$lib/Printer";
+
 export interface JobInformation {
 	job: {
 		averagePrintTime: number;
@@ -28,3 +30,22 @@ export interface JobInformation {
 	};
 	state: string;
 }
+
+export const GetPrinterJob = async (printer: Printer) => {
+	let jobInfo: JobInformation;
+	try {
+		let res: Response = await fetch(`${printer.url}/api/job`, {
+			headers: {
+				'X-Api-Key': printer.apiKey,
+			}
+		});
+		if (!res.ok) {
+			console.log(`error: ${res}`);
+		}
+		jobInfo = await res.json();
+	} catch (err) {
+		console.log(err);
+	}
+	return jobInfo;
+};
+

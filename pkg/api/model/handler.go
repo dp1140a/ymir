@@ -1,15 +1,22 @@
 package model
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strconv"
 	"time"
 	"unsafe"
 
 	"github.com/go-chi/chi/v5"
 	log "github.com/sirupsen/logrus"
 	"ymir/pkg/api"
+	"ymir/pkg/api/printer"
 )
 
 type ModelHandler struct {
@@ -104,6 +111,13 @@ func NewModelHandler() api.HandlerIFace {
 			"/file",
 			false,
 			mh.uploadHandler,
+		},
+		{
+			"uploadFileToPrinter",
+			http.MethodPost,
+			"/file/printer",
+			false,
+			mh.UploadFileToPrinter,
 		},
 		{
 			"fetchImage",
@@ -265,7 +279,7 @@ func (mh ModelHandler) update(w http.ResponseWriter, r *http.Request) {
 }
 
 /*
-DELETE /model/{id} (200, 404, 500) -- deletes the model with {id}
+DELETE /model/{id}?rev (200, 404, 500) -- deletes the model with {id}
 */
 func (mh ModelHandler) delete(w http.ResponseWriter, r *http.Request) {
 	modelId := chi.URLParam(r, "id")
@@ -311,9 +325,7 @@ func (mh ModelHandler) listAll(w http.ResponseWriter, r *http.Request) {
 /*
 GET /model/{tag} (200, 401, 500) -- get []model{} that has {tag}
 */
-func (mh ModelHandler) listByTag(w http.ResponseWriter, r *http.Request) {
-
-}
+func (mh ModelHandler) listByTag(w http.ResponseWriter, r *http.Request) {}
 
 /*
 GET /model/{id} (200, 401, 404, 500) -- gets model with {id}
@@ -334,7 +346,6 @@ func (mh ModelHandler) inspect(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//fmt.Println(string(js))
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	_, err = w.Write(js)
@@ -343,6 +354,9 @@ func (mh ModelHandler) inspect(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+/*
+GET /model/export?path (200, 401, 404, 500) -- gets model with {id}
+*/
 func (mh ModelHandler) exportModelHandler(w http.ResponseWriter, r *http.Request) {
 	dirPath := r.URL.Query().Get("path")
 	if dirPath == "" {
@@ -360,6 +374,9 @@ func (mh ModelHandler) exportModelHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
+/*
+POST /model/{id} (200, 401, 500) -- gets model with {id}
+*/
 func (mh ModelHandler) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseMultipartForm(32 << 20) // 32 MB is the maximum file size
 
@@ -409,6 +426,144 @@ func (mh ModelHandler) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(key))
+}
+
+/*
+POST /model/file/printer?file:<string>&print:<bool> (201, 401, 500) -- Uploads file to printer
+Body: {Printer}
+https://github.com/mcuadros/go-octoprint/blob/master/files.go#L106
+*/
+func (mh ModelHandler) UploadFileToPrinter(w http.ResponseWriter, r *http.Request) {
+	//Get the file
+	filePath := r.URL.Query().Get("file")
+	if filePath == "" {
+		http.Error(w, "Missing 'file' parameter", http.StatusBadRequest)
+		return
+	}
+
+	printFile, err := strconv.ParseBool(r.URL.Query().Get("print"))
+	if err != nil {
+		log.Errorf("malformed print parameter.  setting to false")
+		printFile = false
+	}
+	//Decode the printer
+	var p printer.Printer
+	err = json.NewDecoder(r.Body).Decode(&p)
+	if err != nil {
+		log.Errorf("printer decode error: %v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	ur := UploadFileRequest{
+		Location: "local",
+		Select:   true,
+		Print:    printFile,
+	}
+	file, _ := os.Open(filePath)
+	defer file.Close()
+	err = ur.AddFile(filepath.Base(file.Name()), file)
+	if err != nil {
+		log.Errorf("error adding file: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	ur.writer().WriteField("path", "ymir")
+	ur.addSelectPrintAndClose()
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/api/files/%s", p.URL, ur.Location), ur.b)
+	if err != nil {
+		log.Errorf("request error: %v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	req.Header.Add("Host", "localhost:5000")
+	req.Header.Add("Accept", "*/*")
+	req.Header.Add("Content-Type", ur.w.FormDataContentType())
+	req.Header.Add("X-Api-Key", p.APIKey)
+
+	c := &http.Client{
+		Transport: &http.Transport{
+			DisableKeepAlives: true,
+		},
+	}
+	resp, err := c.Do(req)
+	if err != nil {
+		log.Errorf("response error: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
+	w.Header().Set("x-powered-by", "bacon")
+	w.Header().Set("Content-Type", "application/json")
+
+	if resp.StatusCode == 401 {
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(`{"error": "Missing or invalid API key"}`)
+	} else if resp.StatusCode == 201 {
+		w.WriteHeader(http.StatusCreated)
+		log.Debug(resp.StatusCode)
+		body, _ := io.ReadAll(resp.Body)
+		if log.GetLevel() == log.DebugLevel {
+			fmt.Println(string(body))
+		}
+		json.NewEncoder(w).Encode(string(body))
+	} else {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(fmt.Sprintf("{error: %v, code: %v, body: %v}", resp.Status, resp.StatusCode, resp.Body))
+	}
+}
+
+type UploadFileRequest struct {
+	// Location is the target location to which to upload the file. Currently
+	// only `local` and `sdcard` are supported here, with local referring to
+	// OctoPrint’s `uploads` folder and `sdcard` referring to the printer’s
+	// SD card. If an upload targets the SD card, it will also be stored
+	// locally first.
+	Location string
+	// Select whether to select the file directly after upload (true) or not
+	// (false). Optional, defaults to false. Ignored when creating a folder.
+	Select bool
+	//Print whether to start printing the file directly after upload (true) or
+	// not (false). If set, select is implicitely true as well. Optional,
+	// defaults to false. Ignored when creating a folder.
+	Print bool
+	b     *bytes.Buffer
+	w     *multipart.Writer
+}
+
+// AddFile adds a new file to be uploaded from a given reader.
+func (req *UploadFileRequest) AddFile(filename string, r io.Reader) error {
+	w, err := req.writer().CreateFormFile("file", filename)
+	if err != nil {
+		return err
+	}
+
+	_, err = io.Copy(w, r)
+	return err
+
+}
+
+func (req *UploadFileRequest) writer() *multipart.Writer {
+	if req.w == nil {
+		req.b = bytes.NewBuffer(nil)
+		req.w = multipart.NewWriter(req.b)
+	}
+
+	return req.w
+}
+
+func (req *UploadFileRequest) addSelectPrintAndClose() error {
+	err := req.writer().WriteField("select", fmt.Sprintf("%t", req.Select))
+	if err != nil {
+		return err
+	}
+
+	err = req.writer().WriteField("print", fmt.Sprintf("%t", req.Print))
+	if err != nil {
+		return err
+	}
+
+	return req.writer().Close()
 }
 
 func (mh ModelHandler) fetchImage(w http.ResponseWriter, r *http.Request) {

@@ -46,7 +46,7 @@ func (ps PrintersService) ListPrinters() ([]Printer, error) {
 		"selector": {
 			"printerName": {"$regex": ".+"}
 		},
-		"fields": ["_id", "_rev", "url", "printerName", "tags", "location", "apiKey", "type"]
+		"fields": ["_id", "_rev", "url", "printerName", "tags", "location", "apiKey", "type", "autoConnect"]
 	}`
 	var q interface{}
 	_ = json.Unmarshal([]byte(query), q)
@@ -67,9 +67,7 @@ func (ps PrintersService) ListPrinters() ([]Printer, error) {
 		docs = append(docs, *doc)
 	}
 
-	if log.GetLevel() == log.DebugLevel {
-		fmt.Printf("%v printers returned\n", len(docs))
-	}
+	log.Debugf("%v printers returned\n", len(docs))
 
 	return docs, nil
 }

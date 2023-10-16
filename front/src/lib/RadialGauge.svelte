@@ -11,6 +11,7 @@
   export let width:number = 150;
 
   export let value:number = 0;
+  export let roundValue:number = 2
   export let unitSymbol = ""
   export let min:number = 0;
   export let max:number = 100;
@@ -113,7 +114,7 @@
   <text class="range" x={width*.8} y={height*.92}>{max}</text>
   {#if showTextSvgCenter}
     <text transform="translate({width/2}, {height/1.75})" dy={16}>
-      {value}{unitSymbol}
+      {value.toFixed(roundValue)}{unitSymbol}
     </text>
   {/if}
 
