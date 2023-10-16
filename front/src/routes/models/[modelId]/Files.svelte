@@ -3,14 +3,16 @@
 	import { modalStore, type ModalSettings, type ModalComponent } from '@skeletonlabs/skeleton';
 	import STLModal from '$lib/stl/STLModal.svelte';
 	import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
-	import FilePond, { registerPlugin, supported } from 'svelte-filepond'; //https://pqina.nl/filepond/docs/
+	import FilePond, { registerPlugin } from 'svelte-filepond'; //https://pqina.nl/filepond/docs/
 	import FilePondPluginFileMetadata from 'filepond-plugin-file-metadata';
 	import { _apiUrl } from "$lib/Utils";
  	import type {GCodeMetaData, ModelFileType} from "$lib/Model";
-	import { CheckFileType, FileUploadError, imageTypes, modelTypes, otherTypes, printTypes } from "$lib/Files";
+	import { CheckFileType, FileUploadError} from "$lib/Files";
 	import type { FilePondFile } from "filepond";
 	//import FilePondPluginImagePreview from "filepond-plugin-image-preview";
 	import {_getSTLThumbnail} from "./+page";
+	import PrinterModal from "$lib/PrinterModal.svelte";
+
 
 	registerPlugin(FilePondPluginFileMetadata);
 	const dispatch = createEventDispatcher();
@@ -77,7 +79,6 @@
 		}
 	}
 
-	//let gCodeData = [];
 	const getGCodeMetaData = async (printFiles) => {
 		for (let i=0; i<printFiles.length; i++) {
 			//console.log(printFiles[i])
@@ -90,21 +91,6 @@
 			printFiles[i]['metadata'] = gCodeMetaData;
 		}
 	};
-
-	/**
-	const getSTLThumbNail = async (modelFiles:FileType[]) => {
-		for (const file of modelFiles) {
-			const url = _apiUrl('/v1/model/stlThumbnail?path=').concat(modelBasePath, '/', file.path);
-			let res = await fetch(url);
-			if (!res.ok) {
-				throw `Error while fetching data from ${url} (${res.status} ${res.statusText}).`;
-			}
-			let imgStr = await res.text();
-			return 'data:image/jpeg;base64,'.concat(imgStr);
-		}
-	};
-**/
-
 
 	const showModelSTL = (file:string) => {
 		const url = _apiUrl("/v1/model/stl?path=").concat(modelBasePath,"/",file);
@@ -127,7 +113,7 @@
 		});
 	}
 
-	function deleteFile(index: number, files: string){
+const deleteFile = (index: number, files: string) => {
 		switch (files) {
 			case "model":
 				modelFiles.splice(index, 1);
@@ -144,9 +130,40 @@
 		}
 	}
 
-	function newFile(e) {
-		console.log(e)
+	const printFile = async (filePath: string) => {
+		const url = _apiUrl('/v1/printer');
+		let res = await fetch(url)
+		if (!res.ok) {
+			throw `Error while fetching data from ${url} (${res.status} ${res.statusText}).`;
+		}
+		const printers = await res.json().then((printers) => {
+			const modalComponent: ModalComponent = {
+				ref: PrinterModal,
+				props: {
+					printers: printers,
+					modelBasePath: modelBasePath,
+					filePath: filePath
+				},
+				slot: ''
+			};
+
+			new Promise<boolean>((resolve) => {
+				const modal: ModalSettings = {
+					type: 'component',
+					backdropClasses: '--color-surface-50',
+					component: modalComponent,
+					response: (r: boolean) => {
+						resolve(r)
+					}
+				};
+				modalStore.trigger(modal);
+			}).then(async (r: any)=>{
+
+			})
+		})
+		return
 	}
+
 </script>
 
 <div id="filesContainer" class="">
@@ -233,7 +250,7 @@
 								<button type="button" on:click={() => deleteFile(i, "print")}><i class="fa-regular fa-circle-xmark float-right icon-orange" /></button>
 							</div>
 							<div class="">
-								<button type="button" class="btn my-1 variant-filled-error mt-6" on:click={showNYI}>
+								<button type="button" class="btn my-1 variant-filled-error mt-6" on:click={() => {printFile(file.path)}}>
 									<span><i class="fa-solid fa-print" /></span>
 									<span>Print</span>
 								</button>
@@ -367,7 +384,7 @@
 	}
 
 	.icon {
-		margin-bottom: 0px;
+		margin-bottom: 0;
 	}
 
 	input[type="file"] {

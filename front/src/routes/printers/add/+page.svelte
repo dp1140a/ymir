@@ -1,10 +1,6 @@
 <script lang="ts">
-
-  import type { PrinterLocation } from "$lib/Printer.js";
-  import type { PrinterType } from "$lib/Printer.js";
   import { _apiUrl } from "$lib/Utils";
-  import { Modal, modalStore } from '@skeletonlabs/skeleton';
-  import type { ModalSettings, ModalComponent } from '@skeletonlabs/skeleton';
+  import { type ModalSettings, modalStore} from '@skeletonlabs/skeleton';
   import { goto } from "$app/navigation";
 
   /**
@@ -117,7 +113,7 @@
     <fieldset class="bg-surface-200 p-10 rounded-lg">
       <legend class="text-2xl">Basic Information</legend>
       <label class="label mb-8" for="">
-        <span>Printer Name</span>
+        <span>Printer Name:</span>
         <input
           class="input px-4 py-3"
           type="text"
@@ -127,7 +123,7 @@
         />
       </label>
       <label class="label mb-8" for="">
-        <span>Url</span>
+        <span>Url:</span>
         <input
           class="input px-4 py-3"
           type="text"
@@ -137,13 +133,13 @@
         />
       </label>
       <label class="label mb-8" for="">
-        <span>API Type</span>
+        <span>API Type:</span>
         <select class="select">
           <option selected value="octoprint">Octoprint</option>
         </select>
       </label>
       <label class="label mb-8" for="">
-        <span>API key</span>
+        <span>API key:</span>
         <input
           class="input px-4 py-3"
           type="text"
@@ -153,7 +149,7 @@
         />
       </label>
       <label class="label mb-8" for="">
-        <span>Printer Location</span>
+        <span>Printer Location:</span>
         <input
           class="input px-4 py-3"
           type="text"
@@ -161,6 +157,10 @@
           placeholder="location"
           required
         />
+      </label>
+      <label class="label mb-8" for="">
+        <span>AutoConnect:</span>&nbsp;
+        <input class="input checkbox" type="checkbox" name="autoConnect" checked/>
       </label>
     </fieldset>
     <fieldset class="bg-surface-200 p-10 rounded-lg">

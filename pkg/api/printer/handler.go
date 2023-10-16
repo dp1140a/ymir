@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -21,6 +22,7 @@ const (
 	_PRINTER_MAKE  = "printerMake"
 	_PRINTER_MODEL = "printerModel"
 	_TAGS          = "tags"
+	_AUTO_CONNECT  = "autoConnect"
 )
 
 type PrinterHandler struct {
@@ -109,7 +111,7 @@ func (ph PrinterHandler) create(w http.ResponseWriter, r *http.Request) {
 	printer := Printer{
 		PrinterName: "",
 		URL:         "",
-		APIType:     "octoprint",
+		APIType:     _API_TYPE,
 		APIKey:      "",
 		Location: Location{
 			Name: "",
@@ -122,7 +124,10 @@ func (ph PrinterHandler) create(w http.ResponseWriter, r *http.Request) {
 		Tags:      []string{},
 	}
 
-	fmt.Println(r.MultipartForm.Value)
+	if log.GetLevel() == log.DebugLevel {
+		fmt.Println(r.MultipartForm.Value)
+	}
+
 	for k, v := range r.MultipartForm.Value {
 		switch k {
 		case _PRINTER_NAME:
@@ -134,7 +139,9 @@ func (ph PrinterHandler) create(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			fmt.Println(u.Scheme)
+			if log.GetLevel() == log.DebugLevel {
+				fmt.Println(u.Scheme)
+			}
 			if u.Scheme == "" {
 				u.Scheme = "http"
 			}
@@ -149,6 +156,14 @@ func (ph PrinterHandler) create(w http.ResponseWriter, r *http.Request) {
 			printer.Type.Model = v[0]
 		case _TAGS:
 			printer.Tags = v
+		case _AUTO_CONNECT:
+			ac, err := strconv.ParseBool(v[0])
+			if err != nil {
+				printer.AutoConnect = false
+			} else {
+				printer.AutoConnect = ac
+			}
+
 		}
 	}
 
@@ -251,7 +266,9 @@ func (ph PrinterHandler) inspect(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
+	if log.GetLevel() == log.DebugLevel {
+		fmt.Println(printer.Json())
+	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	_, err = w.Write(js)

@@ -27,6 +27,7 @@ type Printer struct {
 	Type        PrinterType `json:"type"`
 	DateAdded   time.Time   `json:"dateAdded"`
 	Tags        []string    `json:"tags"`
+	AutoConnect bool        `json:"autoConnect"`
 }
 
 type PrinterType struct {
