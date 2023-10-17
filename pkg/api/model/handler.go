@@ -302,7 +302,7 @@ func (mh ModelHandler) delete(w http.ResponseWriter, r *http.Request) {
 GET /model (200, 500) -- get all models
 */
 func (mh ModelHandler) listAll(w http.ResponseWriter, r *http.Request) {
-	models, err := mh.Service.(ModelService).ListModels()
+	models, err := mh.Service.(ModelServiceIface).ListModels()
 	if err != nil {
 		log.Errorf("list all models service error: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -630,7 +630,7 @@ func (mh ModelHandler) addNote(w http.ResponseWriter, r *http.Request) {
 
 func (mh ModelHandler) parseGCode(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Query().Get("path")
-	gcode, err := mh.Service.(ModelService).ParseGCode(path)
+	gcode, err := mh.Service.(ModelService).GetGCodeMetaData(path)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

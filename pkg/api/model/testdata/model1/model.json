@@ -1,0 +1,35 @@
+{
+  "_id": "5e469849725ae295",
+  "_rev": "1-60bd90d98a119d711b5aec1b029ad857",
+  "displayName": "Modular Plier Stand 3130087",
+  "tags": [
+	"pliers",
+	"tools"
+  ],
+  "basePath": "/home/dave/Documents/Tech/3D Prints/Modular_Plier_Stand_3130087",
+  "modelFiles": [
+	{
+	  "path": "files/MPR-1.stl"
+	}
+  ],
+  "printFiles": [
+	{
+	  "path": "files/MPR-1_0.2mm_PLA_MK3S_2h13m.gcode"
+	}
+  ],
+  "otherFiles": [
+	{
+	  "path": "LICENSE.txt"
+	},
+	{
+	  "path": "README.txt"
+	}
+  ],
+  "images": [
+	{
+	  "path": "images/MPR-1.jpg"
+	}
+  ],
+  "dateCreated": "2023-10-05T16:46:32.722647284-07:00",
+  "notes": []
+}

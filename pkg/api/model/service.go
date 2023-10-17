@@ -21,6 +21,22 @@ import (
 	"ymir/pkg/utils"
 )
 
+type ModelServiceIface interface {
+	api.Service
+	CreateModel(Model) error
+	UpdateModel(Model) (rev string, err error)
+	DeleteModel(id string, rev string) error
+	GetModel(id string) (Model, error)
+	ListModels() ([]Model, error)
+	ExportModel(path string, writer io.Writer) error
+	UploadFile(file multipart.File, filename string, basePath string, isExistingModel bool) (key string, err error)
+	FetchModelImage(imagePath string) (imageBytes []byte, err error)
+	FetchSTL(filepath string) (stlBytes []byte, err error)
+	FetchSTLThumbnail(filepath string) string
+	AddNote(model Model) error
+	GetGCodeMetaData(path string) (gcode.GCodeMetaData, error)
+}
+
 type ModelService struct {
 	name      string
 	DataStore *db.DB
@@ -283,6 +299,48 @@ func writeFile(file *multipart.File, path string) error {
 	return nil
 }
 
+/*
+*
+Refactored version to replace:
+UploadFilesExistingModel
+UploadFilesNewModel
+
+@TODO Test before you delete the old func
+*/
+func (ms ModelService) UploadFile(file multipart.File, filename string, basePath string, isExistingModel bool) (key string, err error) {
+	defer file.Close()
+
+	// Determine the target directory
+	targetDir := basePath
+	if isExistingModel {
+		// For existing models, check if the "files" directory exists and use it if found
+		entries, err := os.ReadDir(basePath)
+		if err != nil {
+			log.Errorf("Error reading directory: %v", err)
+			return "", err
+		}
+		for _, dir := range entries {
+			if dir.Name() == "files" && dir.IsDir() {
+				targetDir = filepath.Join(basePath, "files")
+				break
+			}
+		}
+	}
+
+	// Generate a unique key
+	key = filepath.Join(targetDir, filename)
+	path := filepath.Join(basePath, key)
+	log.Debugf("Upload filepath: %v", path)
+
+	// Write the file to the target path
+	err = writeFile(&file, path)
+	if err != nil {
+		log.Errorf("Error writing file: %v", err)
+		return key, err
+	}
+	return key, nil
+}
+
 func (ms ModelService) UploadFilesExistingModel(file multipart.File, filename string, basePath string) (key string, err error) {
 	defer file.Close()
 
@@ -391,7 +449,7 @@ func (ms ModelService) AddNote(model Model) (err error) {
 	}
 }
 
-func (ms ModelService) ParseGCode(path string) (gcode.GCodeMetaData, error) {
+func (ms ModelService) GetGCodeMetaData(path string) (gcode.GCodeMetaData, error) {
 	g := gcode.NewGCode(path)
 	err := g.ParseGCode(false)
 	if err != nil {
