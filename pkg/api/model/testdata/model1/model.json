@@ -6,7 +6,7 @@
 	"pliers",
 	"tools"
   ],
-  "basePath": "/home/dave/Documents/Tech/3D Prints/Modular_Plier_Stand_3130087",
+  "basePath": "model1",
   "modelFiles": [
 	{
 	  "path": "files/MPR-1.stl"
