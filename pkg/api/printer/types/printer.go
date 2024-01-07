@@ -1,4 +1,4 @@
-package printer
+package types
 
 import (
 	"encoding/json"
@@ -60,7 +60,7 @@ func (p *Printer) Json() string {
 
 var TestPrinter = `{
 	"_id": "4d3e3476-d7e8-4f34-957c-60e5fe1e29f3",
-	"displayName": "test",
+	"printerName": "test",
 	"url": "http://myPrinter:8081",
 	"apiType": "OctoPrint",
 	"apiKey": "ABC123",
@@ -76,5 +76,6 @@ var TestPrinter = `{
 	"tags": [
 		"tag1",
 		"tag2"
-	]
+	],
+	autoConnect: true
 }`
