@@ -1,0 +1,35 @@
+{
+  "_id": "5e469849725bc276",
+  "_rev": "1-60bd90d982b2c46c1b029ad857",
+  "displayName": "Filament Grommet",
+  "tags": [
+	"printer",
+	"accessory"
+  ],
+  "basePath": "model2",
+  "modelFiles": [
+	{
+	  "path": "FilamentGrommet.step"
+	}
+  ],
+  "printFiles": [
+	{
+	  "path": "FilamentGrommet_0.15mm_PETG_MK3S_16m.gcode"
+	}
+  ],
+  "otherFiles": [
+	{
+	  "path": "LICENSE.txt"
+	},
+	{
+	  "path": "README.txt"
+	}
+  ],
+  "images": [
+	{
+	  "path": "FilamentGrommet.png"
+	}
+  ],
+  "dateCreated": "2023-10-06T14:41:32.722647284-07:00",
+  "notes": []
+}

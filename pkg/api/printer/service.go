@@ -1,123 +1,107 @@
 package printer
 
 import (
-	"context"
-	"encoding/json"
+	"errors"
 	"fmt"
 
 	log "github.com/sirupsen/logrus"
 	"ymir/pkg/api"
-	"ymir/pkg/db"
+	"ymir/pkg/api/printer/store"
+	"ymir/pkg/api/printer/types"
 	"ymir/pkg/utils"
 )
 
-type PrintersService struct {
-	name      string
-	DataStore *db.DB
-	config    *PrintersConfig
+type PrinterServiceIface interface {
+	api.Service
+	CreatePrinter(printer types.Printer) (id string, err error)
+	UpdatePrinter(printer types.Printer) (err error)
+	DeletePrinter(id string) error
+	GetPrinter(id string) (types.Printer, error)
+	ListPrinters() (map[string]types.Printer, error)
 }
 
-func NewPrinterService() (printersService api.Service) {
-	ps := PrintersService{
-		name:   "Printers",
-		config: NewPrintersConfig(),
+type PrinterService struct {
+	PrinterServiceIface
+	name         string
+	printerStore store.PrinterStoreIFace
+	config       *PrintersConfig
+}
+
+func NewPrinterService() api.Service {
+	ps := PrinterService{
+		name:         "Printers",
+		config:       NewPrintersConfig(),
+		printerStore: store.NewPrinterDataStore(),
 	}
 
-	ds := db.NewDB()
-	ds.Connect()
-	ps.DataStore = ds
+	err := utils.MakeDirIfNotExists(ps.config.PrintersDir)
+	if err != nil {
+		return nil
 
-	utils.MakeDirIfNotExists(ps.config.PrintersDir)
-
+	}
 	return ps
 }
 
-func (ps PrintersService) GetName() (name string) {
+func (ps PrinterService) GetName() (name string) {
 	return ps.name
 }
 
-func (ps PrintersService) GetConfig() *PrintersConfig {
+func (ps PrinterService) GetConfig() *PrintersConfig {
 	return ps.config
 }
 
-func (ps PrintersService) ListPrinters() ([]Printer, error) {
-
-	query := `{
-		"selector": {
-			"printerName": {"$regex": ".+"}
-		},
-		"fields": ["_id", "_rev", "url", "printerName", "tags", "location", "apiKey", "type", "autoConnect"]
-	}`
-	var q interface{}
-	_ = json.Unmarshal([]byte(query), q)
-	rows, err := ps.DataStore.GetDB().Find(context.TODO(), query)
+func (ps PrinterService) ListPrinters() (printers map[string]types.Printer, err error) {
+	printers, err = ps.printerStore.List()
 	if err != nil {
 		log.Error(err)
-		return nil, err
+		return
 	}
-
-	docs := []Printer{}
-	for rows.Next() {
-		doc := &Printer{}
-		err = rows.ScanDoc(doc)
-		if err != nil {
-			log.Errorf("rows error: %v\n", err)
-			return nil, err
-		}
-		docs = append(docs, *doc)
-	}
-
-	log.Debugf("%v printers returned\n", len(docs))
-
-	return docs, nil
+	return
 }
 
-func (ps PrintersService) GetPrinter(id string) (printer Printer, err error) {
-	row := ps.DataStore.GetDB().Get(context.TODO(), id)
-	printer = Printer{}
-	if err = row.ScanDoc(&printer); err != nil {
-		log.Error(err)
-		return printer, err
+func (ps PrinterService) GetPrinter(id string) (printer types.Printer, err error) {
+	printer, err = ps.printerStore.Inspect(id)
+	if err != nil {
+		log.Errorf("error retrieving printerl: %v", err)
+		return
+	} else if printer.Id == "" {
+		err = errors.New(fmt.Sprintf("printer with id: %v does not exist", id))
 	}
-
-	return printer, nil
+	return
 }
 
-func (ps PrintersService) CreatePrinter(printer Printer) (err error) {
-	ctx := context.TODO()
+func (ps PrinterService) CreatePrinter(printer types.Printer) (id string, err error) {
 	printer.Id = utils.GenId()
 	if log.GetLevel() == log.DebugLevel {
 		fmt.Println(printer.Json())
 	}
 
-	docId, rev, err := ps.DataStore.GetDB().CreateDoc(ctx, printer)
+	err = ps.printerStore.Create(printer)
 	if err != nil {
-		log.Errorf("error adding printer: %v", err)
-		return err
+		log.Error(err)
+		return
+	} else {
+		log.Infof("created printer %v in db", printer.Id)
+		return printer.Id, nil
 	}
-
-	log.Infof("added printer %v in db with docid %v and rev %v", printer.Id, docId, rev)
-	return nil
 }
 
-func (ps PrintersService) UpdatePrinter(printer Printer) (rev string, err error) {
-	ctx := context.TODO()
-
-	rev, err = ps.DataStore.GetDB().Put(ctx, printer.Id, printer)
+func (ps PrinterService) UpdatePrinter(printer types.Printer) (err error) {
+	err = ps.printerStore.Update(printer)
 	if err != nil {
-		log.Errorf("error updating printer: %v", err)
-		return "", err
+		log.Error(err)
+		return
+	} else {
+		log.Infof("updated printer %v in db", printer.Id)
+		return
 	}
-	log.Infof("updated printer %v in db with rev %v", printer.Id, rev)
-	return rev, nil
 }
 
-func (ps PrintersService) DeletePrinter(id string, rev string) error {
-	_, err := ps.DataStore.GetDB().Delete(context.TODO(), id, rev)
+func (ps PrinterService) DeletePrinter(id string) (err error) {
+	err = ps.printerStore.Delete(id)
 	if err != nil {
-		log.Errorf("error deleting printer: %v", err)
 		return err
 	}
-
-	return nil
+	log.Infof("deleted printer %v in db", id)
+	return
 }

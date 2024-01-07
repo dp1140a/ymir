@@ -11,6 +11,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	log "github.com/sirupsen/logrus"
 	"ymir/pkg/api"
+	"ymir/pkg/api/printer/types"
 )
 
 const (
@@ -108,15 +109,15 @@ func (ph PrinterHandler) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	printer := Printer{
+	printer := types.Printer{
 		PrinterName: "",
 		URL:         "",
 		APIType:     _API_TYPE,
 		APIKey:      "",
-		Location: Location{
+		Location: types.Location{
 			Name: "",
 		},
-		Type: PrinterType{
+		Type: types.PrinterType{
 			Make:  "",
 			Model: "",
 		},
@@ -167,7 +168,7 @@ func (ph PrinterHandler) create(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err = ph.Service.(PrintersService).CreatePrinter(printer)
+	_, err = ph.Service.(PrinterServiceIface).CreatePrinter(printer)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -175,7 +176,7 @@ func (ph PrinterHandler) create(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("x-powered-by", "bacon")
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode("{'status': 'ok'}")
 }
 
@@ -183,7 +184,7 @@ func (ph PrinterHandler) create(w http.ResponseWriter, r *http.Request) {
 PUT /Printer/{id} [Printer{}] (201, 400, 404, 409, 500) -- updates the Printer with {id} as [Printer{}]
 */
 func (ph PrinterHandler) update(w http.ResponseWriter, r *http.Request) {
-	var printer = Printer{}
+	var printer = types.Printer{}
 	err := json.NewDecoder(r.Body).Decode(&printer)
 	if err != nil {
 		log.Error(err)
@@ -193,7 +194,7 @@ func (ph PrinterHandler) update(w http.ResponseWriter, r *http.Request) {
 	if log.GetLevel() == log.DebugLevel {
 		fmt.Println(printer.Json())
 	}
-	rev, err := ph.Service.(PrintersService).UpdatePrinter(printer)
+	err = ph.Service.(PrinterService).UpdatePrinter(printer)
 	if err != nil {
 		log.Error(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -201,7 +202,7 @@ func (ph PrinterHandler) update(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("x-powered-by", "bacon")
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	respBody := map[string]string{"status": "ok", "rev": rev}
+	respBody := map[string]string{"status": "ok"}
 	json.NewEncoder(w).Encode(respBody)
 }
 
@@ -214,7 +215,7 @@ func (ph PrinterHandler) delete(w http.ResponseWriter, r *http.Request) {
 	if log.GetLevel() == log.DebugLevel {
 		fmt.Printf("id : %v / rev: %v\n", printerId, rev)
 	}
-	err := ph.Service.(PrintersService).DeletePrinter(printerId, rev)
+	err := ph.Service.(PrinterServiceIface).DeletePrinter(printerId)
 	if err != nil {
 		log.Errorf("delete printer handler error: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -222,14 +223,14 @@ func (ph PrinterHandler) delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 /*
 GET /Printer (200, 500) -- get all Printers
 */
 func (ph PrinterHandler) listAll(w http.ResponseWriter, r *http.Request) {
-	printers, err := ph.Service.(PrintersService).ListPrinters()
+	printers, err := ph.Service.(PrinterServiceIface).ListPrinters()
 	if err != nil {
 		log.Errorf("list all models service error: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -255,7 +256,7 @@ GET /Printer/{id} (200, 401, 404, 500) -- gets Printer with {id}
 func (ph PrinterHandler) inspect(w http.ResponseWriter, r *http.Request) {
 	printerId := chi.URLParam(r, "id")
 	log.Debugf("inspecting printer: %v", printerId)
-	printer, err := ph.Service.(PrintersService).GetPrinter(printerId)
+	printer, err := ph.Service.(PrinterServiceIface).GetPrinter(printerId)
 	if err != nil {
 		log.Errorf("list all models service error: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)

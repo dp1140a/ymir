@@ -75,18 +75,21 @@ func Image(fileName string) image.Image {
 }
 
 func Thumbnail(srcImage image.Image, maxHeight uint, maxWidth uint) image.Image {
+
 	return resize.Thumbnail(maxWidth, maxHeight, srcImage, resize.Bilinear)
 }
 
-func ThumbnailBase64(srcImage image.Image, maxHeight uint, maxWidth uint) string {
+func ThumbnailBase64(srcImage image.Image, maxHeight uint, maxWidth uint) (string, error) {
 	img := Thumbnail(srcImage, maxHeight, maxWidth)
 	buf := new(bytes.Buffer)
 	err := png.Encode(buf, img)
 	if err != nil {
 		log.Error(err)
+		return "", err
+
 	}
 
-	return fmt.Sprintf("data:image/png;base64, %s", base64.StdEncoding.EncodeToString(buf.Bytes()))
+	return fmt.Sprintf("data:image/png;base64, %s", base64.StdEncoding.EncodeToString(buf.Bytes())), nil
 }
 
 func Png(image image.Image) ([]byte, error) {

@@ -9,13 +9,15 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func MakeDirIfNotExists(path string) {
+func MakeDirIfNotExists(path string) error {
 	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
 		err := os.MkdirAll(path, os.ModePerm)
 		if err != nil {
 			log.Errorf("error creating dir %v: %v", path, err)
+			return err
 		}
 	}
+	return nil
 }
 
 func GenId() string {

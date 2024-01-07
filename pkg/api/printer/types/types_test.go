@@ -1,4 +1,4 @@
-package printer
+package types
 
 import (
 	"testing"
@@ -14,7 +14,7 @@ var (
 	testPrinter = Printer{
 		Id:          "4d3e3476-d7e8-4f34-957c-60e5fe1e29f3",
 		Rev:         "",
-		DisplayName: "test",
+		PrinterName: "test",
 		URL:         "http://myPrinter:8081",
 		APIType:     "OctoPrint",
 		APIKey:      "ABC123",
@@ -26,8 +26,9 @@ var (
 			Model:   "Mk3S+",
 			Version: "1.0",
 		},
-		DateAdded: tNow,
-		Tags:      []string{"tag1", "tag2"},
+		DateAdded:   tNow,
+		Tags:        []string{"tag1", "tag2"},
+		AutoConnect: false,
 	}
 )
 
@@ -42,7 +43,7 @@ func TestPrinter_Json(t *testing.T) {
 			testPrinter,
 			`{
 	"_id": "4d3e3476-d7e8-4f34-957c-60e5fe1e29f3",
-	"displayName": "test",
+	"printerName": "test",
 	"url": "http://myPrinter:8081",
 	"apiType": "OctoPrint",
 	"apiKey": "ABC123",
@@ -58,7 +59,8 @@ func TestPrinter_Json(t *testing.T) {
 	"tags": [
 		"tag1",
 		"tag2"
-	]
+	],
+	"autoConnect": false
 }`,
 		},
 	}
