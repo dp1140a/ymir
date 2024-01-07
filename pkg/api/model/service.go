@@ -2,20 +2,17 @@ package model
 
 import (
 	"archive/zip"
-	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"os"
 	"path/filepath"
-	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"ymir/pkg/api"
-	"ymir/pkg/db"
+	"ymir/pkg/api/model/store"
+	"ymir/pkg/api/model/types"
 	"ymir/pkg/gcode"
 	"ymir/pkg/stl"
 	"ymir/pkg/utils"
@@ -23,42 +20,40 @@ import (
 
 type ModelServiceIface interface {
 	api.Service
-	CreateModel(Model) error
-	UpdateModel(Model) (rev string, err error)
-	DeleteModel(id string, rev string) error
-	GetModel(id string) (Model, error)
-	ListModels() ([]Model, error)
+	CreateModel(model types.Model) (id string, err error)
+	UpdateModel(model types.Model) (err error)
+	DeleteModel(id string) error
+	GetModel(id string) (types.Model, error)
+	ListModels() (models map[string]types.Model, err error)
 	ExportModel(path string, writer io.Writer) error
 	UploadFile(file multipart.File, filename string, basePath string, isExistingModel bool) (key string, err error)
 	FetchModelImage(imagePath string) (imageBytes []byte, err error)
 	FetchSTL(filepath string) (stlBytes []byte, err error)
 	FetchSTLThumbnail(filepath string) string
-	AddNote(model Model) error
+	AddNote(model types.Model) error
 	GetGCodeMetaData(path string) (gcode.GCodeMetaData, error)
 }
 
 type ModelService struct {
-	name      string
-	DataStore *db.DB
-	config    *ModelsConfig
+	ModelServiceIface
+	name       string
+	modelStore store.ModelStoreIFace
+	config     *ModelsConfig
 }
 
 func NewModelService() (modelService api.Service) {
 	ms := ModelService{
-		name:   "Model",
-		config: NewModelsConfig(),
+		name:       "Model",
+		config:     NewModelsConfig(),
+		modelStore: store.NewModelDataStore(),
 	}
 
-	ds := db.NewDB()
-	ds.Connect()
-	ms.DataStore = ds
-
-	err := makeDirIfNotExists(ms.config.UploadsTempDir)
+	err := utils.MakeDirIfNotExists(ms.config.UploadsTempDir)
 	if err != nil {
 		return nil
 
 	}
-	makeDirIfNotExists(ms.config.ModelsDir)
+	err = utils.MakeDirIfNotExists(ms.config.ModelsDir)
 	if err != nil {
 		return nil
 	}
@@ -69,31 +64,25 @@ func (ms ModelService) GetName() (name string) {
 	return ms.name
 }
 
-func makeDirIfNotExists(path string) error {
-	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
-		err := os.MkdirAll(path, os.ModePerm)
-		if err != nil {
-			log.Errorf("error creating dir %v: %v", path, err)
-			return err
-		}
+func (ms ModelService) GetModel(id string) (model types.Model, err error) {
+	model, err = ms.modelStore.Inspect(id)
+	if err != nil {
+		log.Errorf("error retrieving model: %v", err)
+		return
+	} else if model.Id == "" {
+		err = errors.New(fmt.Sprintf("model with id: %v does not exist", id))
 	}
-	return nil
-}
-
-func (ms ModelService) GetModel(id string) (model Model, err error) {
-	row := ms.DataStore.GetDB().Get(context.TODO(), id)
-	model = Model{}
-	if err = row.ScanDoc(&model); err != nil {
-		log.Error(err)
-		return model, err
-	}
-
-	return model, nil
+	return
 }
 
 func (ms ModelService) ExportModel(path string, writer io.Writer) error {
 	zipWriterObj := zip.NewWriter(writer)
-	defer zipWriterObj.Close()
+	defer func(zipWriterObj *zip.Writer) {
+		err := zipWriterObj.Close()
+		if err != nil {
+			log.Error(err)
+		}
+	}(zipWriterObj)
 	modelPath := fmt.Sprintf("%s/%s", ms.config.ModelsDir, path)
 	err := filepath.Walk(modelPath, func(filePath string, fileInfo os.FileInfo, err error) error {
 		if err != nil {
@@ -122,7 +111,12 @@ func (ms ModelService) ExportModel(path string, writer io.Writer) error {
 			log.Error()
 			return err
 		}
-		defer file.Close()
+		defer func(file *os.File) {
+			err := file.Close()
+			if err != nil {
+				log.Error(err)
+			}
+		}(file)
 
 		_, err = io.Copy(zipFile, file)
 		return err
@@ -132,14 +126,29 @@ func (ms ModelService) ExportModel(path string, writer io.Writer) error {
 }
 
 func addFilesToZip(w *zip.Writer, basePath, baseInZip string) error {
-	files, err := ioutil.ReadDir(basePath)
+	files, err := os.ReadDir(basePath)
 	if err != nil {
 		return err
 	}
 
-	for _, file := range files {
-		fullfilepath := filepath.Join(basePath, file.Name())
-		if _, err := os.Stat(fullfilepath); os.IsNotExist(err) {
+	/*
+			entries, err := os.ReadDir(dirname)
+			if err != nil { ... }
+			infos := make([]fs.FileInfo, 0, len(entries))
+			for _, entry := range entries {
+				info, err := entry.Info()
+				if err != nil { ... }
+				infos = append(infos, info)
+		}
+	*/
+
+	for _, entry := range files {
+		file, err := entry.Info()
+		if err != nil {
+			log.Error(err)
+		}
+		fullFilePath := filepath.Join(basePath, file.Name())
+		if _, err := os.Stat(fullFilePath); os.IsNotExist(err) {
 			// ensure the file exists. For example a symlink pointing to a non-existing location might be listed but not actually exist
 			continue
 		}
@@ -150,11 +159,11 @@ func addFilesToZip(w *zip.Writer, basePath, baseInZip string) error {
 		}
 
 		if file.IsDir() {
-			if err := addFilesToZip(w, fullfilepath, filepath.Join(baseInZip, file.Name())); err != nil {
+			if err := addFilesToZip(w, fullFilePath, filepath.Join(baseInZip, file.Name())); err != nil {
 				return err
 			}
 		} else if file.Mode().IsRegular() {
-			dat, err := ioutil.ReadFile(fullfilepath)
+			dat, err := os.ReadFile(fullFilePath)
 			if err != nil {
 				return err
 			}
@@ -173,125 +182,75 @@ func addFilesToZip(w *zip.Writer, basePath, baseInZip string) error {
 	return nil
 }
 
-func (ms ModelService) CreateModel(model Model) (err error) {
-	ctx := context.TODO()
+func (ms ModelService) CreateModel(model types.Model) (id string, err error) {
 	model.Id = utils.GenId()
 	//fmt.Println(model.Json())
 	// We want to organize all the files and the model
 	err = ms.organize(&model)
 	if err != nil {
 		log.Error(err)
-		return err
+		return
 	}
 
-	docId, rev, err := ms.DataStore.GetDB().CreateDoc(ctx, model)
+	err = ms.modelStore.Create(model)
 	if err != nil {
 		log.Error(err)
-		return err
+		return
 	} else {
-		log.Infof("created model %v in db with docid %v and rev %v", model.Id, docId, rev)
-		return nil
+		log.Infof("created model %v in db", model.Id)
+		return model.Id, nil
 	}
 }
 
-func (ms ModelService) UpdateModel(model Model) (rev string, err error) {
-	ctx := context.TODO()
-
-	rev, err = ms.DataStore.GetDB().Put(ctx, model.Id, model)
+func (ms ModelService) UpdateModel(model types.Model) (err error) {
+	err = ms.modelStore.Update(model)
 	if err != nil {
 		log.Error(err)
-		return "", err
+		return
 	} else {
-		log.Infof("updated model %v in db with rev %v", model.Id, rev)
-		return rev, nil
+		log.Infof("updated model %v in db", model.Id)
+		return
 	}
 }
 
-func (ms ModelService) DeleteModel(id string, rev string) error {
-	newRev, err := ms.DataStore.GetDB().Delete(context.TODO(), id, rev)
+func (ms ModelService) DeleteModel(id string) (err error) {
+	err = ms.modelStore.Delete(id)
 	if err != nil {
 		return err
 	}
-	log.Infof("deleted model %v in db with newRev %v", id, newRev)
+	log.Infof("deleted model %v in db", id)
 	return nil
 }
 
-func (ms ModelService) ListModels() ([]Model, error) {
-	query := `{
-		"selector": {
-			"displayName": {"$regex": ".+"}
-		},
-		"fields": ["_id", "_rev", "basePath", "description", "displayName", "images", "summary", "tags" ]
-	}`
-	var q interface{}
-	_ = json.Unmarshal([]byte(query), q)
-	rows, err := ms.DataStore.GetDB().Find(context.TODO(), query)
+func (ms ModelService) ListModels() (models map[string]types.Model, err error) {
+	models, err = ms.modelStore.List()
 	if err != nil {
 		log.Error(err)
-		return nil, err
+		return
 	}
-
-	docs := []Model{}
-	for rows.Next() {
-		doc := &Model{}
-		err = rows.ScanDoc(doc)
-		if err != nil {
-			log.Errorf("rows error: %v\n", err)
-			return nil, err
-		}
-		docs = append(docs, *doc)
-	}
-
-	return docs, nil
+	return
 }
 
-func (ms ModelService) GetModelsByTag(tag string) ([]Model, error) {
-
-	query := `{
-	   "selector": {
-		  "tags": {
-			 "$elemMatch": {
-				"$eq": "---"
-			 }
-		  }
-	   }
-	}`
-
-	query = strings.Replace(query, "---", tag, 1)
-	//fmt.Println(query)
-	var q interface{}
-	_ = json.Unmarshal([]byte(query), q)
-	rows, err := ms.DataStore.GetDB().Find(context.TODO(), query)
-	if err != nil {
-		log.Error(err)
-		return nil, err
-	}
-
-	docs := []Model{}
-	for rows.Next() {
-		doc := &Model{}
-		err = rows.ScanDoc(doc)
-		if err != nil {
-			log.Errorf("rows error: %v\n", err)
-			return nil, err
-		}
-		docs = append(docs, *doc)
-	}
-
-	return docs, nil
-}
-
-func writeFile(file *multipart.File, path string) error {
+/*
+*
+@TODO Move to utils package
+*/
+func writeFile(file multipart.File, path string) error {
 	// Create a new file in the uploads directory
 	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		log.Error(err)
 		return err
 	}
-	defer f.Close()
+	defer func(f *os.File) {
+		err := f.Close()
+		if err != nil {
+			log.Error(err)
+		}
+	}(f)
 
 	// Copy the contents of the file to the new file
-	_, err = io.Copy(f, *file)
+	_, err = io.Copy(f, file)
 	if err != nil {
 		log.Error(err)
 		return err
@@ -299,55 +258,25 @@ func writeFile(file *multipart.File, path string) error {
 	return nil
 }
 
-/*
-*
-Refactored version to replace:
-UploadFilesExistingModel
-UploadFilesNewModel
-
-@TODO Test before you delete the old func
-*/
-func (ms ModelService) UploadFile(file multipart.File, filename string, basePath string, isExistingModel bool) (key string, err error) {
+// uploadFileHelper encapsulates the common operations for uploading a file
+func (ms ModelService) uploadFileHelper(file multipart.File, path string) (string, error) {
 	defer file.Close()
-
-	// Determine the target directory
-	targetDir := basePath
-	if isExistingModel {
-		// For existing models, check if the "files" directory exists and use it if found
-		entries, err := os.ReadDir(basePath)
-		if err != nil {
-			log.Errorf("Error reading directory: %v", err)
-			return "", err
-		}
-		for _, dir := range entries {
-			if dir.Name() == "files" && dir.IsDir() {
-				targetDir = filepath.Join(basePath, "files")
-				break
-			}
-		}
-	}
-
-	// Generate a unique key
-	key = filepath.Join(targetDir, filename)
-	path := filepath.Join(basePath, key)
-	log.Debugf("Upload filepath: %v", path)
-
-	// Write the file to the target path
-	err = writeFile(&file, path)
+	log.Debugf("upload filepath: %v", path)
+	err := writeFile(file, path)
 	if err != nil {
-		log.Errorf("Error writing file: %v", err)
-		return key, err
+		log.Errorf("error writing file: %v", err)
 	}
-	return key, nil
+
+	// returning path and error to be used in the calling function for error handling
+	return path, err
 }
 
-func (ms ModelService) UploadFilesExistingModel(file multipart.File, filename string, basePath string) (key string, err error) {
-	defer file.Close()
-
-	//Look a folder named "files" in the model folder
+func (ms ModelService) UploadFilesExistingModel(file multipart.File, filename string, basePath string) (string, error) {
+	// Look for a "files" folder in the model folder
 	entries, err := os.ReadDir(basePath)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		return "", err
 	}
 
 	hasFilesDir := false
@@ -358,42 +287,32 @@ func (ms ModelService) UploadFilesExistingModel(file multipart.File, filename st
 		}
 	}
 
-	var path string
+	key := filename
 	if hasFilesDir {
-		//If has files dir then move the new file there
+		// If "files" dir exists, move the new file there
 		key = filepath.Join("files", filename)
-		path = filepath.Join(basePath, key)
-	} else {
-		//else move to basePath
-		key = filename
-		path = filepath.Join(basePath, key)
 	}
-	log.Debugf("upload filepath: %v", path)
-	err = writeFile(&file, path)
+	// Call the refactored function
+	path, err := ms.uploadFileHelper(file, filepath.Join(basePath, key))
 	if err != nil {
-		log.Errorf("error writing file: %v", err)
 		return key, err
 	}
-	return key, nil
+	return path, nil
 }
 
-func (ms ModelService) UploadFilesNewModel(file multipart.File, filename string) (key string, err error) {
-	defer file.Close()
-
-	//Generate key
+func (ms ModelService) UploadFilesNewModel(file multipart.File, filename string) (string, error) {
+	// Generate key
 	tK := utils.GenId()
-	err = makeDirIfNotExists(filepath.Join(ms.config.UploadsTempDir, tK))
+	err := utils.MakeDirIfNotExists(filepath.Join(ms.config.UploadsTempDir, tK))
 	if err != nil {
 		log.Debugf("error making upload dir: %v", err)
 		return "", err
 	}
-	key = filepath.Join(tK, filename)
-	path := filepath.Join(ms.config.UploadsTempDir, key)
-	log.Debugf("upload filepath: %v", path)
 
-	err = writeFile(&file, path)
+	key := filepath.Join(tK, filename)
+	// Call the refactored function
+	path, err := ms.uploadFileHelper(file, filepath.Join(ms.config.UploadsTempDir, key))
 	if err != nil {
-		log.Errorf("error writing file: %v", err)
 		return "", err
 	}
 	return path, nil
@@ -419,34 +338,32 @@ func (ms ModelService) FetchSTL(filepath string) (stlBytes []byte, err error) {
 	return stlBytes, nil
 }
 
-func (ms ModelService) FetchSTLThumbnail(filepath string) string {
+func (ms ModelService) FetchSTLThumbnail(filepath string) (string, error) {
 	img := stl.Image(filepath)
-	imgStr := stl.ThumbnailBase64(img, 128, 128)
+	imgStr, err := stl.ThumbnailBase64(img, 128, 128)
+	if err != nil {
+		log.Error(err)
+		return "", err
+	}
 	//fmt.Println(imgStr)
-	return imgStr
+	return imgStr, nil
 }
 
-func (ms ModelService) AddNote(model Model) (err error) {
-	fmt.Println(model.Json())
-
-	ctx := context.TODO()
-
+func (ms ModelService) AddNote(model types.Model) (err error) {
+	//fmt.Println(model.Json())
 	existingModel, err := ms.GetModel(model.Id)
 	if err != nil {
 		log.Error(err)
 		return err
 	}
-
 	existingModel.Notes = append(existingModel.Notes, model.Notes...)
-
-	rev, err := ms.DataStore.GetDB().Put(ctx, existingModel.Id, existingModel)
+	err = ms.modelStore.Update(existingModel)
 	if err != nil {
 		log.Error(err)
-		return err
 	} else {
-		log.Infof("updated model %v in db with rev %v", model.Id, rev)
-		return nil
+		log.Infof("updated model %v in db", model.Id)
 	}
+	return
 }
 
 func (ms ModelService) GetGCodeMetaData(path string) (gcode.GCodeMetaData, error) {
@@ -460,10 +377,10 @@ func (ms ModelService) GetGCodeMetaData(path string) (gcode.GCodeMetaData, error
 	return g.MetaData, nil
 }
 
-func (ms ModelService) organize(model *Model) (err error) {
+func (ms ModelService) organize(model *types.Model) (err error) {
 	mDir := filepath.Join(ms.config.ModelsDir, model.Id)
 	log.Debugf("model dir: %v", mDir)
-	err = makeDirIfNotExists(mDir)
+	err = utils.MakeDirIfNotExists(mDir)
 	if err != nil {
 		return err
 	}
@@ -488,7 +405,7 @@ func (ms ModelService) organize(model *Model) (err error) {
 		return nil
 	}
 
-	updatePaths := func(files []FileType) error {
+	updatePaths := func(files []types.FileType) error {
 		log.Debugf("num files: %v", len(files))
 		for i, file := range files {
 			err := moveAndClean(file.Path)

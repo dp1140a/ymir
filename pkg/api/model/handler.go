@@ -16,7 +16,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	log "github.com/sirupsen/logrus"
 	"ymir/pkg/api"
-	"ymir/pkg/api/printer"
+	"ymir/pkg/api/model/types"
+	types2 "ymir/pkg/api/printer/types"
 )
 
 type ModelHandler struct {
@@ -192,18 +193,18 @@ func (mh ModelHandler) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	model := Model{
+	model := types.Model{
 		DisplayName: "",
-		Tags:        []Tags{},
-		Images:      []FileType{},
-		ModelFiles:  []FileType{},
-		OtherFiles:  []FileType{},
-		PrintFiles:  []FileType{},
+		Tags:        []types.Tags{},
+		Images:      []types.FileType{},
+		ModelFiles:  []types.FileType{},
+		OtherFiles:  []types.FileType{},
+		PrintFiles:  []types.FileType{},
 		DateCreated: time.Now(),
-		VersionLog:  []ModelVersion{},
+		VersionLog:  []types.ModelVersion{},
 		Description: "",
 		Summary:     "",
-		Notes:       []Note{},
+		Notes:       []types.Note{},
 	}
 
 	if log.GetLevel() == log.DebugLevel {
@@ -239,11 +240,11 @@ func (mh ModelHandler) create(w http.ResponseWriter, r *http.Request) {
 				model.PrintFiles = append(model.PrintFiles, makeFileType(v)...)
 			}
 		case _TAGS:
-			model.Tags = *(*[]Tags)(unsafe.Pointer(&v))
+			model.Tags = *(*[]types.Tags)(unsafe.Pointer(&v))
 		}
 	}
 
-	err = mh.Service.(ModelServiceIface).CreateModel(model)
+	_, err = mh.Service.(ModelServiceIface).CreateModel(model)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -259,7 +260,7 @@ func (mh ModelHandler) create(w http.ResponseWriter, r *http.Request) {
 PUT /model/{id} [Model{}] (200, 400, 500) -- updates the model with {id} as [Model{}]
 */
 func (mh ModelHandler) update(w http.ResponseWriter, r *http.Request) {
-	var model = Model{}
+	var model = types.Model{}
 	err := json.NewDecoder(r.Body).Decode(&model)
 	if err != nil {
 		log.Error(err)
@@ -269,7 +270,7 @@ func (mh ModelHandler) update(w http.ResponseWriter, r *http.Request) {
 	if log.GetLevel() == log.DebugLevel {
 		fmt.Println(model.Json())
 	}
-	rev, err := mh.Service.(ModelService).UpdateModel(model)
+	err = mh.Service.(ModelServiceIface).UpdateModel(model)
 	if err != nil {
 		log.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -277,7 +278,7 @@ func (mh ModelHandler) update(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("x-powered-by", "bacon")
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	respBody := map[string]string{"status": "ok", "rev": rev}
+	respBody := map[string]string{"status": "ok"}
 	json.NewEncoder(w).Encode(respBody)
 }
 
@@ -286,11 +287,10 @@ DELETE /model/{id}?rev (204, 500) -- deletes the model with {id}
 */
 func (mh ModelHandler) delete(w http.ResponseWriter, r *http.Request) {
 	modelId := chi.URLParam(r, "id")
-	rev := r.URL.Query().Get("rev")
 	if log.GetLevel() == log.DebugLevel {
-		fmt.Printf("id : %v / rev: %v\n", modelId, rev)
+		fmt.Printf("id : %v\n", modelId)
 	}
-	err := mh.Service.(ModelServiceIface).DeleteModel(modelId, rev)
+	err := mh.Service.(ModelServiceIface).DeleteModel(modelId)
 	if err != nil {
 		log.Errorf("delete printer handler error: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -454,7 +454,7 @@ func (mh ModelHandler) UploadFileToPrinter(w http.ResponseWriter, r *http.Reques
 		printFile = false
 	}
 	//Decode the printer
-	var p printer.Printer
+	var p types2.Printer
 	err = json.NewDecoder(r.Body).Decode(&p)
 	if err != nil {
 		log.Errorf("printer decode error: %v", err)
@@ -609,7 +609,12 @@ GET /stl/image (200, 500) -- Fetches Model STL Thumbnail
 func (mh ModelHandler) fetchSTLThumbnail(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Query().Get("path")
 	log.Info(path)
-	imgStr := mh.Service.(ModelService).FetchSTLThumbnail(path)
+	imgStr, err := mh.Service.(ModelService).FetchSTLThumbnail(path)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-Type", "image/png")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(imgStr))
@@ -626,10 +631,10 @@ func (mh ModelHandler) addNote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	model := Model{
+	model := types.Model{
 		Id:  r.FormValue("_id"),
 		Rev: r.FormValue("_rev"),
-		Notes: []Note{
+		Notes: []types.Note{
 			{
 				Text: r.FormValue("noteText"),
 				Date: time.Now(),
@@ -683,10 +688,10 @@ func (mh ModelHandler) corsPreflightHandler(w http.ResponseWriter, r *http.Reque
 	w.WriteHeader(http.StatusOK)
 }
 
-func makeFileType(files []string) (fileTypes []FileType) {
-	fileTypes = []FileType{}
+func makeFileType(files []string) (fileTypes []types.FileType) {
+	fileTypes = []types.FileType{}
 	for _, v := range files {
-		fileTypes = append(fileTypes, FileType{
+		fileTypes = append(fileTypes, types.FileType{
 			Path: v,
 		})
 	}

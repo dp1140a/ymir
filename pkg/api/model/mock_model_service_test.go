@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/stretchr/testify/mock"
+	"ymir/pkg/api/model/types"
 	"ymir/pkg/gcode"
 )
 
@@ -16,63 +17,67 @@ import (
 type MockModelService struct {
 	ModelService
 	mock.Mock
-	models []Model
+	models []types.Model
 }
 
-func NewMockModelService() *MockModelService {
-	return &MockModelService{
+func NewMockModelService() MockModelService {
+	return MockModelService{
 		models: getTestModels(),
 	}
 }
 
-func (m *MockModelService) CreateModel(Model) error {
-	return nil
+func (m MockModelService) CreateModel(types.Model) (string, error) {
+	return "", nil
 }
 
-func (m *MockModelService) ListModels() ([]Model, error) {
+func (m MockModelService) ListModels() (map[string]types.Model, error) {
 	// Simulate returning a list of models for testing.
-	return m.models, nil
+	models := map[string]types.Model{}
+	for i := 0; i < len(m.models); i++ {
+		models[m.models[i].Id] = m.models[i]
+	}
+	return models, nil
 }
 
-func (m *MockModelService) GetModel(id string) (Model, error) {
+func (m MockModelService) GetModel(id string) (types.Model, error) {
 	// Simulate returning a list of models for testing.
 	fmt.Println(m.models[0])
 	return m.models[1], nil
 }
 
-func (m *MockModelService) UpdateModel(Model) (rev string, err error) {
-	return "2", nil
-}
-
-func (m *MockModelService) DeleteModel(id string, rev string) error {
+func (m MockModelService) UpdateModel(types.Model) (err error) {
 	return nil
 }
 
-func (m *MockModelService) ExportModel(path string, writer io.Writer) error {
+func (m MockModelService) DeleteModel(id string) error {
 	return nil
 }
 
-func (m *MockModelService) UploadFile(file multipart.File, filename string, basePath string, isExistingModel bool) (key string, err error) {
+func (m MockModelService) ExportModel(path string, writer io.Writer) error {
+	return nil
+}
+
+func (m MockModelService) UploadFile(file multipart.File, filename string, basePath string, isExistingModel bool) (key string, err error) {
 	return "", nil
 }
 
-func (m *MockModelService) FetchModelImage(imagePath string) (imageBytes []byte, err error) {
+func (m MockModelService) FetchModelImage(imagePath string) (imageBytes []byte, err error) {
 	return nil, nil
 }
 
-func (m *MockModelService) FetchSTL(filepath string) (stlBytes []byte, err error) {
+func (m MockModelService) FetchSTL(filepath string) (stlBytes []byte, err error) {
 	return nil, nil
 }
 
-func (m *MockModelService) FetchSTLThumbnail(filepath string) string {
+func (m MockModelService) FetchSTLThumbnail(filepath string) string {
 	return ""
 }
 
-func (m *MockModelService) AddNote(model Model) error {
+func (m MockModelService) AddNote(model types.Model) error {
 	return nil
 }
 
-func (m *MockModelService) GetGCodeMetaData(path string) (gcode.GCodeMetaData, error) {
+func (m MockModelService) GetGCodeMetaData(path string) (gcode.GCodeMetaData, error) {
 	return gcode.GCodeMetaData{}, nil
 }
 
@@ -80,8 +85,8 @@ func (m MockModelService) GetName() string {
 	return ""
 }
 
-func getTestModels() []Model {
-	models := []Model{}
+func getTestModels() []types.Model {
+	models := []types.Model{}
 	cwd, _ := os.Getwd()
 
 	d := filepath.Join(cwd, "testdata")
@@ -115,17 +120,17 @@ func fileExists(filePath string) bool {
 	return err == nil
 }
 
-func readModelFile(filePath string) (Model, error) {
+func readModelFile(filePath string) (types.Model, error) {
 	fmt.Println(filePath)
 	data, err := os.ReadFile(filePath)
 	if err != nil {
-		return Model{}, err
+		return types.Model{}, err
 	}
 
-	var model Model
+	var model types.Model
 	err = json.Unmarshal(data, &model)
 	if err != nil {
-		return Model{}, err
+		return types.Model{}, err
 	}
 
 	return model, nil

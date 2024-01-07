@@ -1,8 +1,9 @@
-package model
+package printer
 
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -12,75 +13,89 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"ymir/pkg/api" // Replace with the actual import path for your project
-	"ymir/pkg/api/model/types"
+	"ymir/pkg/api"
+	"ymir/pkg/api/printer/types"
 )
 
-type ModelHandlerTestSuite struct {
+type PrinterHandlerTestSuite struct {
 	suite.Suite
-	handler *ModelHandler
+	handler *PrinterHandler
 }
 
-func (suite *ModelHandlerTestSuite) SetupSuite() {
-	suite.handler = &ModelHandler{
+func (suite *PrinterHandlerTestSuite) SetupSuite() {
+	suite.handler = &PrinterHandler{
 		Handler: api.Handler{
-			Service: NewMockModelService(),
+			Service: NewMockPrinterService(),
 		},
 	}
-
-	suite.handler.Routes = suite.handler.addRoutes()
 }
 
-func (suite *ModelHandlerTestSuite) SetupTest() {
-
-}
-
-func (suite *ModelHandlerTestSuite) TeardownTest() {
+func (suite *PrinterHandlerTestSuite) SetupTest() {
 
 }
 
-func (suite *ModelHandlerTestSuite) TeardownSuite() {
+func (suite *PrinterHandlerTestSuite) TeardownTest() {
 
 }
 
-func (suite *ModelHandlerTestSuite) TestModelHandler_CreateModel_Good() {
+func (suite *PrinterHandlerTestSuite) TeardownSuite() {
+
+}
+
+func (suite *PrinterHandlerTestSuite) TestPrinterHandler_CreatePrinter_Good() {
 	pipeReader, pipeWriter := io.Pipe()
 	multipartWriter := multipart.NewWriter(pipeWriter)
 
 	go func() {
-		defer multipartWriter.Close()
+		defer func(multipartWriter *multipart.Writer) {
+			err := multipartWriter.Close()
+			if err != nil {
+
+			}
+		}(multipartWriter)
 		nameField, err := multipartWriter.CreateFormField("displayName")
 		if err != nil {
 			suite.T().Error(err)
 		}
-		nameField.Write([]byte("TestModel"))
+		_, err = nameField.Write([]byte("TestPrinter"))
+		if err != nil {
+			return
+		}
 	}()
 
-	req := httptest.NewRequest(http.MethodPost, "/model", pipeReader)
+	req := httptest.NewRequest(http.MethodPost, "/printer", pipeReader)
 	req.Header.Set("content-type", multipartWriter.FormDataContentType())
 	rr := httptest.NewRecorder()
 	suite.handler.create(rr, req)
 
 	// Check the response status code.
-	assert.Equal(suite.T(), http.StatusCreated, rr.Code, "should be status coke 200")
+	assert.Equal(suite.T(), http.StatusCreated, rr.Code, "should be status code 200")
 	assert.Equal(suite.T(), "application/json", rr.Header().Get("content-type"))
 	assert.Equal(suite.T(), "\"{'status': 'ok'}\"\n", rr.Body.String(), "response should be JSON")
 }
 
-func (suite *ModelHandlerTestSuite) TestModelHandler_CreateModel_Bad() {
+func (suite *PrinterHandlerTestSuite) TestPrinterHandler_CreatePrinter_Bad() {
 	pipeReader, pipeWriter := io.Pipe()
 	multipartWriter := multipart.NewWriter(pipeWriter)
 
 	go func() {
-		defer multipartWriter.Close()
+		defer func(multipartWriter *multipart.Writer) {
+			err := multipartWriter.Close()
+			if err != nil {
+
+			}
+		}(multipartWriter)
 		nameField, err := multipartWriter.CreateFormField("displayName")
 		if err != nil {
 			suite.T().Error(err)
 		}
-		nameField.Write([]byte("TestModel"))
+		_, err = nameField.Write([]byte("TestPrinter"))
+		if err != nil {
+			return
+		}
 	}()
 
-	req := httptest.NewRequest(http.MethodPost, "/model", pipeReader)
+	req := httptest.NewRequest(http.MethodPost, "/printer", pipeReader)
 	req.Header.Set("content-type", "text/plain") // <-- This will make it fail
 	rr := httptest.NewRecorder()
 	suite.handler.create(rr, req)
@@ -90,8 +105,8 @@ func (suite *ModelHandlerTestSuite) TestModelHandler_CreateModel_Bad() {
 	assert.Equal(suite.T(), "text/plain; charset=utf-8", rr.Header().Get("content-type"))
 }
 
-func (suite *ModelHandlerTestSuite) TestModelHandler_ListAll() {
-	req, err := http.NewRequest("GET", "/model", nil)
+func (suite *PrinterHandlerTestSuite) TestPrinterHandler_ListAll() {
+	req, err := http.NewRequest("GET", "/printer", nil)
 	if err != nil {
 		suite.T().Fatal(err)
 	}
@@ -102,18 +117,19 @@ func (suite *ModelHandlerTestSuite) TestModelHandler_ListAll() {
 	assert.Equal(suite.T(), http.StatusOK, rr.Code, "should be status coke 200")
 
 	// Check the response body (you may need to adjust this based on your actual response format).
-	var models map[string]types.Model
-	if err := json.Unmarshal(rr.Body.Bytes(), &models); err != nil {
+	var printers map[string]types.Printer
+	fmt.Println(rr.Body.String())
+	if err := json.Unmarshal(rr.Body.Bytes(), &printers); err != nil {
 		suite.T().Errorf("Failed to unmarshal response body: %v", err)
 	}
 
-	assert.Len(suite.T(), models, 2, "should be 2 models")
-	assert.NotNil(suite.T(), models, "should not be nil")
+	assert.Len(suite.T(), printers, 2, "should be 2 printers")
+	assert.NotNil(suite.T(), printers, "should not be nil")
 }
 
-func (suite *ModelHandlerTestSuite) TestModelHandler_InspectModel() {
-	id := "5e469849725bc276" //Should be model2 in testdata
-	req, err := http.NewRequest("GET", "/model/{id}", nil)
+func (suite *PrinterHandlerTestSuite) TestPrinterHandler_InspectPrinter() {
+	id := "test-0" //Should be printer2 in testdata
+	req, err := http.NewRequest("GET", "/printer/{id}", nil)
 	if err != nil {
 		suite.T().Fatal(err)
 	}
@@ -129,21 +145,20 @@ func (suite *ModelHandlerTestSuite) TestModelHandler_InspectModel() {
 	assert.Equal(suite.T(), http.StatusOK, rr.Code, "should be status coke 200")
 
 	// Check the response body (you may need to adjust this based on your actual response format).
-	var model types.Model
-	if err := json.Unmarshal(rr.Body.Bytes(), &model); err != nil {
+	var printer types.Printer
+	if err := json.Unmarshal(rr.Body.Bytes(), &printer); err != nil {
 		suite.T().Errorf("Failed to unmarshal response body: %v", err)
 	}
 
-	assert.NotNil(suite.T(), model, "should not be nil")
-	assert.Equal(suite.T(), id, model.Id, "It should be 5e469849725bc276")
-	assert.Equal(suite.T(), "Filament Grommet", model.DisplayName, "name should be Filament Grommet")
-	assert.Len(suite.T(), model.Tags, 2, "Should have 2 tags")
+	assert.NotNil(suite.T(), printer, "should not be nil")
+	assert.Equal(suite.T(), id, printer.Id, "test-0")
+	assert.Equal(suite.T(), "test_1", printer.PrinterName, "name should be test_1")
 }
 
-// DELETE /model/{id}?rev
-func (suite *ModelHandlerTestSuite) TestModelHandler_DeleteModel() {
-	id := "5e469849725bc276" //Should be model2 in testdata
-	req, err := http.NewRequest("DELETE", "/model/{id}", nil)
+// DELETE /printer/{id}?rev
+func (suite *PrinterHandlerTestSuite) TestPrinterHandler_DeletePrinter() {
+	id := "5e469849725bc276" //Should be printer2 in testdata
+	req, err := http.NewRequest("DELETE", "/printer/{id}", nil)
 	if err != nil {
 		suite.T().Fatal(err)
 	}
@@ -159,6 +174,6 @@ func (suite *ModelHandlerTestSuite) TestModelHandler_DeleteModel() {
 
 }
 
-func TestModelHandlerTestSuite(t *testing.T) {
-	suite.Run(t, new(ModelHandlerTestSuite))
+func TestPrinterHandlerTestSuite(t *testing.T) {
+	suite.Run(t, new(PrinterHandlerTestSuite))
 }
