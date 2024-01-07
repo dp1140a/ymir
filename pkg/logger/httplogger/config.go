@@ -13,9 +13,9 @@ const (
 
 type HttpLoggerConfig struct {
 	Enabled bool   `json:"enabled" toml:"enabled"`
-	StdOut  bool   `json:"stdout" toml:"stdout"`
-	FileOut bool   `json:"fileout" toml:"fileout"`
-	LogFile string `json:"logfile" toml:"logfile"`
+	StdOut  bool   `json:"stdOut" toml:"stdOut"`
+	FileOut bool   `json:"fileOut" toml:"fileOut"`
+	LogFile string `json:"logFile" toml:"logFile"`
 }
 
 //New

@@ -14,6 +14,8 @@ const (
 type LoggerConfig struct {
 	LogFile  string `json:"logFile" toml:"logFile"`
 	LogLevel string `json:"logLevel" toml:"logLevel"`
+	StdOut   bool   `json:"stdOut" toml:"stdOut"`
+	FileOut  bool   `json:"fileOut" toml:"fileOut"`
 }
 
 //New
@@ -21,7 +23,12 @@ type LoggerConfig struct {
 Returns a default populated *LoggerConfig
 */
 func NewLoggerConfig() *LoggerConfig {
-	loggerConfig := &LoggerConfig{}
+	loggerConfig := &LoggerConfig{
+		LogFile:  "log/ymir.log",
+		LogLevel: "INFO",
+		StdOut:   true,
+		FileOut:  false,
+	}
 	h := viper.Sub(_LOGGING)
 	if h != nil {
 		err := h.Unmarshal(loggerConfig)
