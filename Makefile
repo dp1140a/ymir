@@ -13,6 +13,7 @@ CMD_DIR = $(PKG_DIR)/cmd
 DIST_DIR = $(WD)/dist
 LOG_DIR = $(WD)/log
 REPORT_DIR = $(WD)/reports
+IGNORE_DIRS = "/scratch"
 
 M = $(shell printf "\033[34;1m\033[0m")
 N = $(shell printf '\u2705')
@@ -105,7 +106,7 @@ fmt:
 test:
 	@echo "$(M)  👀 testing code...\n"
 	@mkdir -pv $(REPORT_DIR)
-	go test ./... >$(REPORT_DIR)/test.out 2>&1
+	-go test ./... $(go list ./... | grep -v $IGNORE_DIRS) > $(REPORT_DIR)/test.out
 	@echo $(DONE) "Test\n"
 
 ## testwithcoverge: Tests code coverage
@@ -113,7 +114,7 @@ test:
 testwithcoverage:
 	@echo "$(M)  👀 testing code with coverage...\n"
 	@mkdir -pv $(REPORT_DIR)
-	go test ./... -coverprofile=$(REPORT_DIR)/$(COVERAGE_RPT)
+	-go test ./pkg/... -coverprofile=$(REPORT_DIR)/$(COVERAGE_RPT)
 	@echo $(DONE) "Test with Coverage\n"
 
 ## missing: Displays lines of code missing from coverage. Puts report in ./build/coverage.out
