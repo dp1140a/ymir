@@ -82,6 +82,10 @@ Right now there is a dependency on couchdb.  Im using it as the datastore.
 The fastest way to get this up is to just run a couchdb docker container.
 ```zsh
 docker run -d -p 5984:5984 --name couchdb -e COUCHDB_USER=admin -e COUCHDB_PASSWORD=password couchdb:latest
+
+curl -X PUT http://127.0.0.1:5984/_users
+curl -X PUT http://127.0.0.1:5984/_replicator
+curl -X PUT http://127.0.0.1:5984/_global_changes
 ```
 After installation and initial startup, visit the UI at http://127.0.0.1:5984/_utils#setup and follow the wizard
 Reference: [couchdb setup guide](https://docs.couchdb.org/en/stable/setup/single-node.html)

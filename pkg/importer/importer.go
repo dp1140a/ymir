@@ -1,7 +1,6 @@
 package importer
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,46 +10,43 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/exp/slices"
-	"ymir/pkg/api/model"
-	"ymir/pkg/db"
+	"ymir/pkg/api/model/store"
+	"ymir/pkg/api/model/types"
 	"ymir/pkg/utils"
 )
 
 type Importer struct {
-	config  *ImporterConfig
-	baseDir string
-	Models  []model.Model
-	Tags    []model.Tags
+	config     *ImporterConfig
+	modelStore store.ModelStore
+	baseDir    string
+	Models     []types.Model
+	Tags       []types.Tags
 }
 
 func NewImporter(base string) *Importer {
 	importer := &Importer{
-		config:  NewImporterConfig(),
-		baseDir: base,
+		config:     NewImporterConfig(),
+		modelStore: store.NewModelDataStore().(store.ModelStore),
+		baseDir:    base,
 	}
 	return importer
 }
 
 func (i *Importer) PutInDB() error {
-	//if put in DB put them all in the DB
-	ctx := context.TODO()
-	ds := db.NewDB()
-	ds.Connect()
-
 	for _, model := range i.Models {
-		docId, rev, err := ds.GetDB().CreateDoc(ctx, model)
+		err := i.modelStore.Create(model)
 		if err != nil {
 			log.Errorf("error writing model %v %v", model.BasePath, err)
 			return err
 		}
-		fmt.Printf("created model %v in db with docid %v and rev %v\n", model.BasePath, docId, rev)
+		fmt.Printf("created model %v in db with docid %v\n", model.BasePath, model.Id)
 	}
 	return nil
 }
 
 var depth = 0
 
-func (i *Importer) walk(path string, m *model.Model) error {
+func (i *Importer) walk(path string, m *types.Model) error {
 	fmt.Printf("Scanning: %v [%v]\n", path, depth)
 	dirs, _ := os.ReadDir(path)
 	fmt.Printf("  %v entries\n", len(dirs))
@@ -70,17 +66,17 @@ func (i *Importer) walk(path string, m *model.Model) error {
 		} else {
 			if m == nil {
 				fmt.Println("Creating Model:")
-				m = &model.Model{
+				m = &types.Model{
 					Id:          utils.GenId(),
 					DisplayName: cleanDisplayName(filepath.Base(i.baseDir)),
 					BasePath:    path,
 					Tags:        i.Tags,
-					ModelFiles:  []model.FileType{},
-					PrintFiles:  []model.FileType{},
-					OtherFiles:  []model.FileType{},
-					Images:      []model.FileType{},
+					ModelFiles:  []types.FileType{},
+					PrintFiles:  []types.FileType{},
+					OtherFiles:  []types.FileType{},
+					Images:      []types.FileType{},
 					DateCreated: time.Now(),
-					Notes:       []model.Note{},
+					Notes:       []types.Note{},
 				}
 			}
 
@@ -93,17 +89,17 @@ func (i *Importer) walk(path string, m *model.Model) error {
 
 			if slices.Contains(MODEL_TYPES, filepath.Ext(f.Name())[1:]) {
 				fmt.Printf("  Found a model: %v\n", f.Name())
-				m.ModelFiles = append(m.ModelFiles, model.FileType{Path: fName})
+				m.ModelFiles = append(m.ModelFiles, types.FileType{Path: fName})
 				continue
 			}
 			if slices.Contains(PRINT_TYPES, filepath.Ext(f.Name())[1:]) {
 				fmt.Printf("  Adding Print File: %v\n", f.Name())
-				m.PrintFiles = append(m.PrintFiles, model.FileType{Path: fName})
+				m.PrintFiles = append(m.PrintFiles, types.FileType{Path: fName})
 				continue
 			}
 			if slices.Contains(IMAGE_TYPES, filepath.Ext(f.Name())[1:]) {
 				fmt.Printf("  Adding Image: %v\n", f.Name())
-				m.Images = append(m.Images, model.FileType{Path: fName})
+				m.Images = append(m.Images, types.FileType{Path: fName})
 				continue
 			}
 			if slices.Contains(OTHER_TYPES, filepath.Ext(f.Name())[1:]) {
@@ -111,7 +107,7 @@ func (i *Importer) walk(path string, m *model.Model) error {
 					continue
 				}
 				fmt.Printf("  Adding Other File: %v\n", f.Name())
-				m.OtherFiles = append(m.OtherFiles, model.FileType{Path: f.Name()})
+				m.OtherFiles = append(m.OtherFiles, types.FileType{Path: f.Name()})
 				continue
 			}
 		}
@@ -133,7 +129,7 @@ func cleanDisplayName(str string) string {
 	fmt.Printf("MODEL NAME: %v\n", nonAlphanumericRegex.ReplaceAllString(str, " "))
 	return nonAlphanumericRegex.ReplaceAllString(str, " ")
 }
-func writeModel(path string, model *model.Model) error {
+func writeModel(path string, model *types.Model) error {
 	fmt.Printf("Writng model %v to %v\n", model.DisplayName, path)
 	err := model.WriteModel(path)
 	if err != nil {

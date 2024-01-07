@@ -5,7 +5,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"ymir/pkg/api/model"
+	"ymir/pkg/api/model/types"
 	"ymir/pkg/config"
 	"ymir/pkg/importer"
 )
@@ -21,7 +21,7 @@ var importCmd = &cobra.Command{
 	Use:   "import",
 	Short: "import command",
 	Long: `Model Import Command.  This command will import any models it finds into ymir.  without the db flag it will create a model.json file for each model.  
-With the db flag it will make entries into the db.  Some assumptions were made that each model is in its own directory.  Ideally this looks like:
+With the db flag it will also make entries into the db.  Some assumptions were made that each model is in its own directory.  Ideally this looks like:
 
 	.
 	├── files
@@ -52,7 +52,7 @@ func init() {
 
 func runImport() {
 	imp := importer.NewImporter(Path)
-	imp.Tags = *(*[]model.Tags)(unsafe.Pointer(&Tags))
+	imp.Tags = *(*[]types.Tags)(unsafe.Pointer(&Tags))
 	err := imp.FindModels()
 	if err != nil {
 		log.Fatal(err)

@@ -16,7 +16,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	log "github.com/sirupsen/logrus"
 	"ymir/pkg/api"
-	"ymir/pkg/api/printer"
+	"ymir/pkg/api/model/types"
+	types2 "ymir/pkg/api/printer/types"
 )
 
 type ModelHandler struct {
@@ -55,7 +56,12 @@ func NewModelHandler() api.HandlerIFace {
 		},
 	}
 
-	mh.Routes = []api.Route{
+	mh.Routes = mh.addRoutes()
+	return mh
+}
+
+func (mh ModelHandler) addRoutes() []api.Route {
+	return []api.Route{
 		{
 			"createModel",
 			http.MethodPost,
@@ -162,8 +168,6 @@ func NewModelHandler() api.HandlerIFace {
 			mh.exportModelHandler,
 		},
 	}
-
-	return mh
 }
 
 func (mh ModelHandler) GetRoutes() []api.Route {
@@ -189,18 +193,18 @@ func (mh ModelHandler) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	model := Model{
+	model := types.Model{
 		DisplayName: "",
-		Tags:        []Tags{},
-		Images:      []FileType{},
-		ModelFiles:  []FileType{},
-		OtherFiles:  []FileType{},
-		PrintFiles:  []FileType{},
+		Tags:        []types.Tags{},
+		Images:      []types.FileType{},
+		ModelFiles:  []types.FileType{},
+		OtherFiles:  []types.FileType{},
+		PrintFiles:  []types.FileType{},
 		DateCreated: time.Now(),
-		VersionLog:  []ModelVersion{},
+		VersionLog:  []types.ModelVersion{},
 		Description: "",
 		Summary:     "",
-		Notes:       []Note{},
+		Notes:       []types.Note{},
 	}
 
 	if log.GetLevel() == log.DebugLevel {
@@ -236,11 +240,11 @@ func (mh ModelHandler) create(w http.ResponseWriter, r *http.Request) {
 				model.PrintFiles = append(model.PrintFiles, makeFileType(v)...)
 			}
 		case _TAGS:
-			model.Tags = *(*[]Tags)(unsafe.Pointer(&v))
+			model.Tags = *(*[]types.Tags)(unsafe.Pointer(&v))
 		}
 	}
 
-	err = mh.Service.(ModelService).CreateModel(model)
+	_, err = mh.Service.(ModelServiceIface).CreateModel(model)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -248,15 +252,15 @@ func (mh ModelHandler) create(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("x-powered-by", "bacon")
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode("{'status': 'ok'}")
 }
 
 /*
-PUT /model/{id} [Model{}] (201, 400, 404, 409, 500) -- updates the model with {id} as [Model{}]
+PUT /model/{id} [Model{}] (200, 400, 500) -- updates the model with {id} as [Model{}]
 */
 func (mh ModelHandler) update(w http.ResponseWriter, r *http.Request) {
-	var model = Model{}
+	var model = types.Model{}
 	err := json.NewDecoder(r.Body).Decode(&model)
 	if err != nil {
 		log.Error(err)
@@ -266,28 +270,27 @@ func (mh ModelHandler) update(w http.ResponseWriter, r *http.Request) {
 	if log.GetLevel() == log.DebugLevel {
 		fmt.Println(model.Json())
 	}
-	rev, err := mh.Service.(ModelService).UpdateModel(model)
+	err = mh.Service.(ModelServiceIface).UpdateModel(model)
 	if err != nil {
 		log.Error(err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	w.Header().Set("x-powered-by", "bacon")
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	respBody := map[string]string{"status": "ok", "rev": rev}
+	respBody := map[string]string{"status": "ok"}
 	json.NewEncoder(w).Encode(respBody)
 }
 
 /*
-DELETE /model/{id}?rev (200, 404, 500) -- deletes the model with {id}
+DELETE /model/{id}?rev (204, 500) -- deletes the model with {id}
 */
 func (mh ModelHandler) delete(w http.ResponseWriter, r *http.Request) {
 	modelId := chi.URLParam(r, "id")
-	rev := r.URL.Query().Get("rev")
 	if log.GetLevel() == log.DebugLevel {
-		fmt.Printf("id : %v / rev: %v\n", modelId, rev)
+		fmt.Printf("id : %v\n", modelId)
 	}
-	err := mh.Service.(ModelService).DeleteModel(modelId, rev)
+	err := mh.Service.(ModelServiceIface).DeleteModel(modelId)
 	if err != nil {
 		log.Errorf("delete printer handler error: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -295,14 +298,14 @@ func (mh ModelHandler) delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 /*
 GET /model (200, 500) -- get all models
 */
 func (mh ModelHandler) listAll(w http.ResponseWriter, r *http.Request) {
-	models, err := mh.Service.(ModelService).ListModels()
+	models, err := mh.Service.(ModelServiceIface).ListModels()
 	if err != nil {
 		log.Errorf("list all models service error: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -328,14 +331,18 @@ GET /model/{tag} (200, 401, 500) -- get []model{} that has {tag}
 func (mh ModelHandler) listByTag(w http.ResponseWriter, r *http.Request) {}
 
 /*
-GET /model/{id} (200, 401, 404, 500) -- gets model with {id}
+GET /model/{id} (200, 400, 500) -- gets model with {id}
 */
 func (mh ModelHandler) inspect(w http.ResponseWriter, r *http.Request) {
 	modelId := chi.URLParam(r, "id")
+	if modelId == "" {
+		log.Error("modelId is missing or bad")
+		http.Error(w, "modelId is missing or bad", http.StatusBadRequest)
+	}
 	log.Debugf("inspecting modelId: %v", modelId)
-	model, err := mh.Service.(ModelService).GetModel(modelId)
+	model, err := mh.Service.(ModelServiceIface).GetModel(modelId)
 	if err != nil {
-		log.Errorf("list all models service error: %v", err)
+		log.Errorf("inspect model service error: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -355,7 +362,7 @@ func (mh ModelHandler) inspect(w http.ResponseWriter, r *http.Request) {
 }
 
 /*
-GET /model/export?path (200, 401, 404, 500) -- gets model with {id}
+GET /model/export?path (204, 400, 500) -- gets model with {id}
 */
 func (mh ModelHandler) exportModelHandler(w http.ResponseWriter, r *http.Request) {
 	dirPath := r.URL.Query().Get("path")
@@ -370,12 +377,12 @@ func (mh ModelHandler) exportModelHandler(w http.ResponseWriter, r *http.Request
 
 	if err := mh.Service.(ModelService).ExportModel(dirPath, w); err != nil {
 		http.Error(w, fmt.Sprintf("Error zipping directory: %s", err), http.StatusInternalServerError)
-		return
 	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 /*
-POST /model/{id} (200, 401, 500) -- gets model with {id}
+POST /model/{id} (202, 400, 500) -- gets model with {id}
 */
 func (mh ModelHandler) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseMultipartForm(32 << 20) // 32 MB is the maximum file size
@@ -402,7 +409,7 @@ func (mh ModelHandler) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	file, handler, err := r.FormFile(fType)
 	if err != nil {
 		log.Error(err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -424,12 +431,12 @@ func (mh ModelHandler) uploadHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusAccepted)
 	w.Write([]byte(key))
 }
 
 /*
-POST /model/file/printer?file:<string>&print:<bool> (201, 401, 500) -- Uploads file to printer
+POST /model/file/printer?file:<string>&print:<bool> (201, 400, 401, 500) -- Uploads file to printer
 Body: {Printer}
 https://github.com/mcuadros/go-octoprint/blob/master/files.go#L106
 */
@@ -447,7 +454,7 @@ func (mh ModelHandler) UploadFileToPrinter(w http.ResponseWriter, r *http.Reques
 		printFile = false
 	}
 	//Decode the printer
-	var p printer.Printer
+	var p types2.Printer
 	err = json.NewDecoder(r.Body).Decode(&p)
 	if err != nil {
 		log.Errorf("printer decode error: %v", err)
@@ -566,6 +573,9 @@ func (req *UploadFileRequest) addSelectPrintAndClose() error {
 	return req.writer().Close()
 }
 
+/*
+GET /image (200, 500) -- Fetches Model Image
+*/
 func (mh ModelHandler) fetchImage(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Query().Get("path")
 	buf, err := mh.Service.(ModelService).FetchModelImage(path)
@@ -574,9 +584,13 @@ func (mh ModelHandler) fetchImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/octet-stream")
+	w.WriteHeader(http.StatusOK)
 	w.Write(buf)
 }
 
+/*
+GET /stl (200, 500) -- Fetches Model STL
+*/
 func (mh ModelHandler) fetchSTL(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Query().Get("path")
 	buf, err := mh.Service.(ModelService).FetchSTL(path)
@@ -585,17 +599,30 @@ func (mh ModelHandler) fetchSTL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/sla")
+	w.WriteHeader(http.StatusOK)
 	w.Write(buf)
 }
 
+/*
+GET /stl/image (200, 500) -- Fetches Model STL Thumbnail
+*/
 func (mh ModelHandler) fetchSTLThumbnail(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Query().Get("path")
 	log.Info(path)
-	imgStr := mh.Service.(ModelService).FetchSTLThumbnail(path)
+	imgStr, err := mh.Service.(ModelService).FetchSTLThumbnail(path)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-Type", "image/png")
+	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(imgStr))
 }
 
+/*
+POST /note (201, 400, 500) -- Add note to Model
+*/
 func (mh ModelHandler) addNote(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseMultipartForm(32 << 20) // 32 MB is the maximum file size
 	if err != nil {
@@ -604,10 +631,10 @@ func (mh ModelHandler) addNote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	model := Model{
+	model := types.Model{
 		Id:  r.FormValue("_id"),
 		Rev: r.FormValue("_rev"),
-		Notes: []Note{
+		Notes: []types.Note{
 			{
 				Text: r.FormValue("noteText"),
 				Date: time.Now(),
@@ -623,14 +650,17 @@ func (mh ModelHandler) addNote(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("x-powered-by", "bacon")
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode("{'status': 'ok'}")
 
 }
 
+/*
+GET /gcode (200, 500) -- Fetches Model STL Thumbnail
+*/
 func (mh ModelHandler) parseGCode(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Query().Get("path")
-	gcode, err := mh.Service.(ModelService).ParseGCode(path)
+	gcode, err := mh.Service.(ModelService).GetGCodeMetaData(path)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -658,10 +688,10 @@ func (mh ModelHandler) corsPreflightHandler(w http.ResponseWriter, r *http.Reque
 	w.WriteHeader(http.StatusOK)
 }
 
-func makeFileType(files []string) (fileTypes []FileType) {
-	fileTypes = []FileType{}
+func makeFileType(files []string) (fileTypes []types.FileType) {
+	fileTypes = []types.FileType{}
 	for _, v := range files {
-		fileTypes = append(fileTypes, FileType{
+		fileTypes = append(fileTypes, types.FileType{
 			Path: v,
 		})
 	}

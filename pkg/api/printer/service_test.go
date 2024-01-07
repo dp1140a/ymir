@@ -1,60 +1,154 @@
 package printer
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"os"
 	"testing"
 
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
-	"ymir/pkg/api"
+	"github.com/stretchr/testify/suite"
+	"ymir/pkg/api/printer/store"
+	"ymir/pkg/api/printer/types"
+	"ymir/pkg/logger"
 )
 
-func TestNewPrinterService(t *testing.T) {
-	tests := []struct {
-		name     string
-		expected api.Service
-	}{
-		{
-			"Default",
-			PrintersService{
-				name:   "Printers",
-				config: NewPrintersConfig(),
-			},
-		},
+const (
+	TEST_DIR = "TEST_DIR"
+)
+
+type PrintersServiceTestSuite struct {
+	suite.Suite
+	service      PrinterService
+	testPrinters []types.Printer
+}
+
+func (suite *PrintersServiceTestSuite) SetupSuite() {
+	fmt.Println("SetupSuite()")
+	viper.SetConfigType("toml") // or viper.SetConfigType("YAML")
+
+	// any approach to require this configuration into your program.
+	var tomlExample = []byte(`
+[logging]
+logLevel="DEBUG"
+
+[datastore]
+dbFile = "test.db"
+
+[printers]
+printersDir="TEST_DIR/printers"
+`)
+
+	err := viper.ReadConfig(bytes.NewBuffer(tomlExample))
+	if err != nil {
+		suite.T().Errorf("Error: %v", err)
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := NewPrinterService()
-			assert.NotNil(t, got, "Should Not be nil")
-			assert.Equal(t, tt.expected.(PrintersService).name, got.GetName(), "Should be equal")
-			assert.Equal(t, tt.expected.(PrintersService).config, got.(PrintersService).GetConfig(), "Should be equal")
-		})
+
+	suite.service = NewPrinterService().(PrinterService)
+	err = logger.InitLogger()
+	if err != nil {
+		fmt.Println(err.Error())
+		suite.T().Fatal(err.Error())
+	}
+	suite.testPrinters = getTestPrinters(2)
+}
+
+func (suite *PrintersServiceTestSuite) AfterTest(suiteName, testName string) {}
+
+func (suite *PrintersServiceTestSuite) BeforeTest(suiteName, testName string) {
+}
+
+func (suite *PrintersServiceTestSuite) SetupTest() {
+	fmt.Println("SetupTest")
+	err := suite.service.printerStore.(store.PrinterStore).Truncate()
+	assert.NoError(suite.T(), err)
+	err = suite.service.printerStore.Create(suite.testPrinters[0])
+	assert.NoError(suite.T(), err, "should be no error on test setup")
+}
+
+func (suite *PrintersServiceTestSuite) TearDownTest() {
+}
+
+func (suite *PrintersServiceTestSuite) TearDownSuite() {
+	fmt.Println("TearDownSuite()")
+	suite.T().Cleanup(func() {
+	})
+	err := os.RemoveAll(TEST_DIR)
+	err = os.Remove("test.db")
+
+	if err != nil {
+		log.Fatal(err)
 	}
 }
 
-func TestPrintersService_ListPrinters(t *testing.T) {
-	tests := []struct {
-		name string
-		want []Printer
-	}{
-		{
-			"Test Printer",
-			[]Printer{
-				Printer{
-					Id:          "f7e5231e550c5f5bd36d4ccb2603a6d6",
-					Rev:         "1-b352edf5ef13fea61218d1e877ca7b8f",
-					DisplayName: "test",
-					URL:         "http://myPrinter:8081",
-					Tags:        []string{"tag1", "tag2"},
-				},
-			},
-		},
+func (suite *PrintersServiceTestSuite) TestNewPrinterService() {
+	assert.NotNil(suite.T(), suite.service, "Should not be nil")
+}
+
+func (suite *PrintersServiceTestSuite) TestPrinterServiceGetName() {
+	assert.Equal(suite.T(), "Printers", suite.service.GetName())
+}
+
+func (suite *PrintersServiceTestSuite) TestCreatePrinter() {
+	id, err := suite.service.CreatePrinter(types.Printer{})
+	suite.testPrinters[0].Id = id
+	pri, err := suite.service.GetPrinter(id)
+	assert.Equal(suite.T(), suite.testPrinters[0].Id, pri.Id, "should be same")
+	assert.NoError(suite.T(), err)
+}
+
+func (suite *PrintersServiceTestSuite) TestUpdatePrinter() {
+	newPri := suite.testPrinters[1]
+	newName := "testUpdate"
+	newPri.PrinterName = newName
+	err := suite.service.UpdatePrinter(newPri)
+	assert.NoError(suite.T(), err)
+	pri, err := suite.service.GetPrinter(suite.testPrinters[1].Id)
+	assert.NoError(suite.T(), err, "should be no error")
+	assert.Equal(suite.T(), newName, pri.PrinterName, "should be equal")
+}
+
+func (suite *PrintersServiceTestSuite) TestListPrinters() {
+	Printers, err := suite.service.ListPrinters()
+	assert.NoError(suite.T(), err, "should be no error")
+	assert.Len(suite.T(), Printers, 1, "should be 1")
+	assert.IsType(suite.T(), map[string]types.Printer{}, Printers, "should be type []Printer.Printer{}")
+	assert.IsType(suite.T(), types.Printer{}, Printers[suite.testPrinters[0].Id], "should be of type Printer")
+	assert.Equal(suite.T(), suite.testPrinters[0], Printers[suite.testPrinters[0].Id], "should be equal")
+}
+
+func (suite *PrintersServiceTestSuite) TestGetPrinter() {
+	pri, err := suite.service.GetPrinter(suite.testPrinters[0].Id)
+	assert.NoError(suite.T(), err, "should be no error")
+	assert.IsType(suite.T(), types.Printer{}, pri, "should be of type Printer")
+	assert.Equal(suite.T(), suite.testPrinters[0], pri, "should be equal")
+}
+
+func (suite *PrintersServiceTestSuite) TestDeletePrinter() {
+	err := suite.service.DeletePrinter(suite.testPrinters[1].Id)
+	assert.NoError(suite.T(), err, "should be no error")
+	_, err = suite.service.GetPrinter(suite.testPrinters[1].Id)
+	assert.Error(suite.T(), err, "should be error")
+}
+
+/*
+Utility Functions
+*/
+func getTestPrinters(num int) (printers []types.Printer) {
+	for i := 0; i < num; i++ {
+		printer := types.Printer{}
+		_ = json.Unmarshal([]byte(types.TestPrinter), &printer)
+		printer.PrinterName = fmt.Sprintf("test_%v", i+1)
+		printer.Id = fmt.Sprintf("test-%v", i)
+		printers = append(printers, printer)
 	}
-	for _, tt := range tests {
-		ps := NewPrinterService()
-		got, err := ps.(PrintersService).ListPrinters()
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Nil(t, err, "Should be nil")
-			assert.Len(t, got, 1, "Should be 1")
-			assert.Equal(t, tt.want, got, "ListPrinters()")
-		})
-	}
+
+	return printers
+}
+
+func TestPrintersServiceTestSuite(t *testing.T) {
+	suite.Run(t, new(PrintersServiceTestSuite))
 }
