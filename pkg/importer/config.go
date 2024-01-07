@@ -1,13 +1,15 @@
 package importer
 
 import (
-	"ymir/pkg/db"
+	"ymir/pkg/config"
+	"ymir/pkg/db/boltdatastore"
 )
 
 type ImporterConfig struct {
-	DB *db.DBConfig
+	storeConfig *boltdatastore.BoltDBDataStoreConfig
 }
 
 func NewImporterConfig() *ImporterConfig {
-	return &ImporterConfig{DB: db.NewDBConfig()}
+	config.InitConfig()
+	return &ImporterConfig{storeConfig: boltdatastore.NewBoltDBDataStoreConfig()}
 }
