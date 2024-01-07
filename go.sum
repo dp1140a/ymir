@@ -285,6 +285,8 @@ gitlab.com/flimzy/testy v0.0.3/go.mod h1:YObF4cq711ubd/3U0ydRQQVz7Cnq/ChgJpVwNr/
 gitlab.com/flimzy/testy v0.9.1/go.mod h1:4Yy2aelUY6IgRmd3jHgGWewZLNMQZWQTlwyuMW642Mc=
 gitlab.com/flimzy/testy v0.11.0 h1:YQxcTSqX/r9NYvwrNG+maswc7bw+r1Hh1RE/7e6JWQ4=
 gitlab.com/flimzy/testy v0.11.0/go.mod h1:tcu652e6AyD5wS8q2JRUI+j5SlwIYsl3yq3ulHyuh8M=
+go.etcd.io/bbolt v1.3.7 h1:j+zJOnnEjF/kyHlDDgGnVL/AIqIJPq8UoB2GSNfkUfQ=
+go.etcd.io/bbolt v1.3.7/go.mod h1:N9Mkw9X8x5fupy0IKsmuqVtoGDyxsaDlbk4Rd05IAQw=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
 go.opencensus.io v0.22.0/go.mod h1:+kGneAE2xo2IficOXnaByMWTGM9T73dGwxeWcUqIpI8=
 go.opencensus.io v0.22.2/go.mod h1:yxeiOL68Rb0Xd1ddK5vPZ/oVn4vY4Ynel7k9FzqtOIw=
