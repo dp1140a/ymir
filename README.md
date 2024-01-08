@@ -1,4 +1,6 @@
 # Ymir
+Last Update: 8Jan24
+
 Ymir is a 3D model manager. In a nutshell it is a light and local version of the printables.com website.
 
 ## About
@@ -77,19 +79,6 @@ There are 2 components:
 * The UI -- This is a Sveltekit app
 * The API Server -- built in go
 
-### Dependencies
-Right now there is a dependency on couchdb.  Im using it as the datastore.
-The fastest way to get this up is to just run a couchdb docker container.
-```zsh
-docker run -d -p 5984:5984 --name couchdb -e COUCHDB_USER=admin -e COUCHDB_PASSWORD=password couchdb:latest
-
-curl -X PUT http://127.0.0.1:5984/_users
-curl -X PUT http://127.0.0.1:5984/_replicator
-curl -X PUT http://127.0.0.1:5984/_global_changes
-```
-After installation and initial startup, visit the UI at http://127.0.0.1:5984/_utils#setup and follow the wizard
-Reference: [couchdb setup guide](https://docs.couchdb.org/en/stable/setup/single-node.html)
-
 You can run the UI separately in dev mode with:
 ```bash
 cd front
@@ -115,28 +104,23 @@ A default config file is in the [config](config/ymir.toml) folder.  Most of thes
 options should be pretty self-explanatory.  But I'll add more docs in a bit.
 
 ```toml
-printConfig = false 
+printConfig = false
 
 [logging]
 logFile = "log/ymir.log"
-logLevel="ERROR"
+logLevel="DEBUG"
+stdOut = true
+fileOut = false
 
-[db]
-host = "localhost"
-port = "5984"
-username = "admin"
-password = "password"
-dbName = "ymir"
+[datastore]
+dbFile="ymir2.db"
 
 [models]
 uploadsTempDir="uploads/tmp"
 modelsDir="uploads/modelFiles"
 
-[printer]
-host="127.0.0.1"
-type="Prusa Mk3S+"
-apiType="octoprint"
-apikey="ABC123"
+[printers]
+printersDir="uploads/printers"
 
 [http]
 hostname = "0.0.0.0"
@@ -151,17 +135,15 @@ JWTSecret = "abc123"
 
 [http.logging]
 enabled = true
-stdout = false
-fileout = true
-logfile = "log/ymir_http.log"
+stdOut = false
+fileOut = true
+logFile = "log/ymir_http.log"
 ```
 
-# Docs
+## Docs
 A users manual is coming soon.
 
-# TODOs
-* Remove the couchdb dependency
-    * local filesystem -- using model.json files
-    * Genjidb -- an embedded db
+## TODOs
 * Full Docs site
+* Docker build
 * Clean up the codebase -- This was my first time creating a svelte app
