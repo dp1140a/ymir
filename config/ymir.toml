@@ -6,7 +6,6 @@ logLevel="DEBUG"
 stdOut = true
 fileOut = false
 
-
 [datastore]
 dbFile="ymir2.db"
 

@@ -106,7 +106,8 @@ fmt:
 test:
 	@echo "$(M)  👀 testing code...\n"
 	@mkdir -pv $(REPORT_DIR)
-	-go test ./... $(go list ./... | grep -v $IGNORE_DIRS) > $(REPORT_DIR)/test.out
+	@touch $(REPORT_DIR)/test.out
+	go test -count=1 -v ./... $(go list ./... | grep -v $IGNORE_DIRS) &> $(REPORT_DIR)/test.out
 	@echo $(DONE) "Test\n"
 
 ## testwithcoverge: Tests code coverage
@@ -114,7 +115,7 @@ test:
 testwithcoverage:
 	@echo "$(M)  👀 testing code with coverage...\n"
 	@mkdir -pv $(REPORT_DIR)
-	-go test ./pkg/... -coverprofile=$(REPORT_DIR)/$(COVERAGE_RPT)
+	-go test -v ./pkg/... -coverprofile=$(REPORT_DIR)/$(COVERAGE_RPT)
 	@echo $(DONE) "Test with Coverage\n"
 
 ## missing: Displays lines of code missing from coverage. Puts report in ./build/coverage.out
@@ -142,7 +143,7 @@ reports: vet missing
 .PHONY: clean
 clean:
 	@echo "$(M)  🧹 Cleaning build ..."
-	go clean $(PKG) || true
+	go clean ./... || true
 	rm -rf $(BUILD_DIR)
 	rm -rf $(DIST_DIR)
 	rm -rf $(REPORT_DIR)
