@@ -28,6 +28,7 @@ log/*
 uploads/*
 reports/*
 scripts/*
+VERSION
 
 #Sveltekit
 front/node_modules
