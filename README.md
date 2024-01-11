@@ -37,12 +37,14 @@ not have to create an account on.
 And did I mention Ymir has a built-in STL viewer.
 
 ## Installing
-Right now you will have to build it yourself.  Im working on getting binary releases into Github
+### Binaries
+Binaries are available for Linux, MacOS, and Windows.  they can be found [here](https://github.com/dp1140a/ymir/releases/latest)
 
+### From Source
 To build it you will need a few things installed:
-* [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
-* [golang](https://go.dev/)
-* [gox](https://github.com/mitchellh/gox) <- Used for cross-platform compilation
+* [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm) <-- There may be some other svelte dependencies.  Please let me know if you run into some
+* [golang](https://go.dev/) <-- This should be pretty self evident
+* [gox](https://github.com/mitchellh/gox) <- Used by the Makefile for cross-platform compilation
 
 First Build the UI
 ```bash
@@ -92,7 +94,6 @@ Usage:
 
 Available Commands:
   completion  Generate the autocompletion script for the specified shell
-  db          db command
   help        Help about any command (each subcommand also has help)
   import      import command.  Import models into ymir
   serve       Starts the ymir server
@@ -144,6 +145,6 @@ logFile = "log/ymir_http.log"
 A users manual is coming soon.
 
 ## TODOs
+* Config subcommand to generate a default config
 * Full Docs site
-* Docker build
 * Clean up the codebase -- This was my first time creating a svelte app
