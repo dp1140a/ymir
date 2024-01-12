@@ -3,9 +3,10 @@ package httplogger
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/go-chi/chi/v5/middleware"
@@ -31,13 +32,20 @@ func NewStructuredLogger(logger *logrus.Logger, config *HttpLoggerConfig) func(n
 
 	if config.FileOut == true {
 		logger.Info("http file log enabled")
+		dir, _ := filepath.Split(config.LogFile)
+		if _, err := os.Stat(dir); os.IsNotExist(err) {
+			err = os.MkdirAll(dir, 0755)
+			if err != nil {
+				log.Fatal("Log Error: ", err, ": ", config.LogFile)
+			}
+		}
 		logger.Info("http log file name: ", config.LogFile)
 		f, err = os.OpenFile(config.LogFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			logger.Fatal("Log Error: ", err)
 		}
 	} else {
-		f = ioutil.Discard
+		f = io.Discard
 	}
 	mw := io.MultiWriter(sol, f)
 	logger.SetOutput(mw)
