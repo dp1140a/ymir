@@ -3,8 +3,6 @@
 	import {page} from "$app/stores";
 
 	// The ordering of these imports is critical to your app working properly
-	import '../theme.postcss';
-	import '@skeletonlabs/skeleton/styles/skeleton.css';
 	import { TabGroup, TabAnchor } from '@skeletonlabs/skeleton';
 	import '../app.postcss';
 	import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom';

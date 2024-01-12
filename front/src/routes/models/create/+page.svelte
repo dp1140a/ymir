@@ -2,7 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	import { InputChip } from '@skeletonlabs/skeleton';
-	import { Modal, modalStore } from '@skeletonlabs/skeleton';
+	import { Modal, getModalStore } from '@skeletonlabs/skeleton';
 	import type { ModalSettings, ModalComponent } from '@skeletonlabs/skeleton';
 	import FilePond, { registerPlugin, supported } from 'svelte-filepond'; //https://pqina.nl/filepond/docs/
 	import FilePondPluginImagePreview from 'filepond-plugin-image-preview';
@@ -12,6 +12,7 @@
 	import Editor from 'ckeditor5-custom-build/build/ckeditor'; // https://github.com/techlab23/ckeditor5-svelte/blob/master/src/Ckeditor.svelte
 	import { _apiUrl } from "$lib/Utils";
 
+	const modalStore = getModalStore()
 	// we need the same type
 	type Data = {
 		success: boolean;

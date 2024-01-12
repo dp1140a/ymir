@@ -2,7 +2,7 @@
 	import { goto, invalidateAll } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { TabGroup, Tab, TabAnchor, InputChip } from "@skeletonlabs/skeleton";
-	import { modalStore, type ModalSettings } from '@skeletonlabs/skeleton';
+	import { getModalStore, type ModalSettings } from '@skeletonlabs/skeleton';
 	import Notes from './Notes.svelte';
 	import Files from './Files.svelte';
 	import {handleError, _apiUrl} from "$lib/Utils";
@@ -10,7 +10,7 @@
 	export let data;
 	let model = data.model;
 	const modelId = $page.params.modelId;
-
+const modalStore = getModalStore()
 	let errorType = '';
 	let errorMessage = '';
 	let validExtensions ='';

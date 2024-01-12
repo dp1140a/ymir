@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { T, Canvas} from '@threlte/core';
-	import { OrbitControls, Center} from '@threlte/extras';
-	import { MeshStandardMaterial, Vector3, Matrix4 } from 'three';
-	import { onMount } from "svelte";
+	import { OrbitControls} from '@threlte/extras';
+	import { MeshStandardMaterial, Vector3} from 'three';
 
 	export let geometry;
 	export let ambientLightColor: number | [number, number, number] = [64, 64, 64];
@@ -57,11 +56,7 @@
 			<T.DirectionalLight position={[1, 1, 1]} intesity={spotlightIntensity} />
 			<T.HemisphereLight color={ambientLightColor} intensity={ambientLightIntensity} />
 		</T.PerspectiveCamera>
-		<Center autoCenter on:center={({ width }) => {
-    //console.log('The width of the bounding box is', width)
-  }}>
 			<T.Mesh {geometry} material={msm} bind:ref={model}/>
-		</Center>
 	</Canvas>
 <style>
 </style>

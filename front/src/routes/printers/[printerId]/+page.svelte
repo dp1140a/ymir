@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {type ModalSettings, modalStore } from "@skeletonlabs/skeleton";
+  import {type ModalSettings, getModalStore } from "@skeletonlabs/skeleton";
   import RadialGauge from "$lib/RadialGauge.svelte";
   import { GetPrinterFiles, CheckPrinterStatus, type PrinterStatus} from "$lib/Printer";
   import {GetPrinterJob, type JobInformation} from "$lib/Job"
@@ -7,7 +7,7 @@
   import { goto, invalidateAll } from "$app/navigation";
 
   export let data;
-
+  const modalStore = getModalStore()
   let printer= data.printer;
   let online = data.status.online;
   let printerStatus:PrinterStatus = data.status.printerStatus;

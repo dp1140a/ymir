@@ -3,7 +3,7 @@
 	import { Avatar } from '@skeletonlabs/skeleton';
 	import { base } from '$app/paths';
 	import { goto } from '$app/navigation';
-	import {_apiUrl} from "../+layout";
+	import {_apiUrl} from "$lib/Utils";
 
 	const getVersion = async () => {
 		const url = _apiUrl('/v1/version');

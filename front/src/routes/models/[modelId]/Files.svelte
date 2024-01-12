@@ -1,6 +1,6 @@
 <script lang="ts">
 	import {createEventDispatcher} from 'svelte'
-	import { modalStore, type ModalSettings, type ModalComponent } from '@skeletonlabs/skeleton';
+	import { getModalStore, type ModalSettings, type ModalComponent } from '@skeletonlabs/skeleton';
 	import STLModal from '$lib/stl/STLModal.svelte';
 	import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 	import FilePond, { registerPlugin } from 'svelte-filepond'; //https://pqina.nl/filepond/docs/
@@ -13,7 +13,7 @@
 	import {_getSTLThumbnail} from "./+page";
 	import PrinterModal from "$lib/PrinterModal.svelte";
 
-
+	const modalStore = getModalStore()
 	registerPlugin(FilePondPluginFileMetadata);
 	const dispatch = createEventDispatcher();
 	export let modelBasePath = '';

@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { modalStore} from '@skeletonlabs/skeleton';
+  import { getModalStore} from '@skeletonlabs/skeleton';
   import { ProgressRadial } from '@skeletonlabs/skeleton';
   import { type Printer, SelectedPrinter, UploadAndPrintFile } from "$lib/Printer";
   import { goto } from "$app/navigation";
 
-
+const modalStore = getModalStore()
   let selectedOption
   export let printers:Printer[]
   export let modelBasePath:string

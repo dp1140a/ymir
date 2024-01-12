@@ -1,6 +1,6 @@
 <script lang="ts">
   import { _apiUrl } from "$lib/Utils";
-  import { type ModalSettings, modalStore} from '@skeletonlabs/skeleton';
+  import { type ModalSettings, getModalStore} from '@skeletonlabs/skeleton';
   import { goto } from "$app/navigation";
 
   /**
@@ -27,6 +27,7 @@
     "Version": string
   }
 **/
+  const modalStore = getModalStore()
   let errorType = '';
   let errorMessage = '';
   let errorVisible: boolean = false;

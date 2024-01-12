@@ -1,6 +1,5 @@
 <script>
 	import STLViewer from '$lib/stl/STLViewer.svelte';
-	import { modalStore} from '@skeletonlabs/skeleton';
 	import { onMount } from "svelte";
 	export let geometry;
 	let w;
