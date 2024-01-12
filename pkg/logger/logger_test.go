@@ -2,7 +2,9 @@ package logger
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/spf13/viper"
@@ -20,8 +22,11 @@ func (suite *LoggerTestSuite) SetupSuite() {
 
 	// any approach to require this configuration into your program.
 	var tomlExample = []byte(`
-[datastore]
-dbFile = "test.db"
+[logging]
+logFile = "log/ymir.log"
+logLevel="DEBUG"
+stdOut = true
+fileOut = false
 `)
 
 	err := viper.ReadConfig(bytes.NewBuffer(tomlExample))
@@ -38,6 +43,15 @@ func (suite *LoggerTestSuite) TearDownTest() {
 }
 
 func (suite *LoggerTestSuite) TearDownSuite() {
+	fmt.Println("TearDownSuite()")
+	if _, err := os.Stat(viper.GetString("logging.logfile")); errors.Is(err, os.ErrNotExist) {
+		return
+	} else {
+		err := os.Remove("log")
+		if err != nil {
+			fmt.Errorf(err.Error())
+		}
+	}
 }
 
 func (suite *LoggerTestSuite) TestInitLogger() {

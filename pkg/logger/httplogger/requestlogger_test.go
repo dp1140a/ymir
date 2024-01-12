@@ -2,7 +2,9 @@ package httplogger
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
+	"os"
 	"testing"
 
 	log "github.com/sirupsen/logrus"
@@ -41,6 +43,17 @@ func (suite *RequestLoggerTestSuite) TearDownTest() {
 }
 
 func (suite *RequestLoggerTestSuite) TearDownSuite() {
+	fmt.Println("TearDownSuite()")
+	fmt.Println(viper.GetString("http.logging.logfile"))
+	if _, err := os.Stat(viper.GetString("http.logging.logfile")); errors.Is(err, os.ErrNotExist) {
+		fmt.Println("File Does NOT exist")
+	}
+	fmt.Println("removing file")
+	err := os.RemoveAll("log")
+
+	if err != nil {
+		fmt.Printf("error removing: %v\n", err.Error())
+	}
 }
 
 func (suite *RequestLoggerTestSuite) TestNewRequestLogger() {
