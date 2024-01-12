@@ -41,6 +41,7 @@ front/.env
 front/.vercel_build_output
 front/.svelte-kit
 front/.vscode
+front/.npmrc
 
 
 #IDES
