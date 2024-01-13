@@ -40,7 +40,6 @@ func (suite *BoltDataStoreTestSuite) TearDownSuite() {
 }
 
 func (suite *BoltDataStoreTestSuite) TestNewBoltDBDataStore_Default() {
-
 	assert.NotNil(suite.T(), BoltDBDataStore{}, suite.store, "Should not be nil")
 	assert.NotNil(suite.T(), suite.store.ds, "Datastore.db should not be nil")
 	assert.Equal(suite.T(), "ymir.db", suite.store.ds.Path(), "should be ymir.db")

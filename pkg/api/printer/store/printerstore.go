@@ -2,7 +2,6 @@ package store
 
 import (
 	"encoding/json"
-	"fmt"
 
 	log "github.com/sirupsen/logrus"
 	bolt "go.etcd.io/bbolt"
@@ -25,16 +24,19 @@ type PrinterStoreIFace interface {
 type PrinterStore struct {
 	PrinterStoreIFace
 	bucket string
-	ds     *db.BoltDBDataStore
+	ds     db.BoltDBDataStore
 }
 
 func NewPrinterDataStore() (store PrinterStoreIFace) {
 	config := db.NewBoltDBDataStoreConfig()
-	fmt.Println(config.DBFile)
 	d := PrinterStore{
-		ds: db.NewBoltDBDatastore(config),
+		ds: *db.NewBoltDBDatastore(config),
 	}
-	createBucketIfNotExists(d.ds)
+	err := createBucketIfNotExists(&d.ds)
+	if err != nil {
+		log.Error("could not create bucket:")
+		return nil
+	}
 	return d
 }
 
@@ -79,7 +81,7 @@ func (ms PrinterStore) Truncate() (err error) {
 		return err
 	})
 
-	err = createBucketIfNotExists(ms.ds)
+	err = createBucketIfNotExists(&ms.ds)
 	return
 }
 
