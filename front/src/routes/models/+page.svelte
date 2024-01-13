@@ -1,9 +1,9 @@
 <script lang="ts">
 	import ModelCard from '$lib/ModelCard.svelte';
-	import { base } from '$app/paths';
+	import type {Model} from "$lib/Model"
 	export let data;
 
-	const models = data.models;
+	const models = data.models;cd ..
 
 	//https://svelte.dev/repl/e67e1a90ef3945ec988bf39f6a10b6b3?version=3.32.3
 	let filteredModels = [];
@@ -14,7 +14,7 @@
 	export let searchTerm = '';
 
 	const searchByTag = () => {
-		filteredModels = models.filter((model: any) => {
+		filteredModels = models.filter((model: Model) => {
 			searchTerm = tagSearch;
 			return model.tags.some((tag) => tag.toLowerCase() === tagSearch.toLowerCase());
 		});
@@ -62,24 +62,22 @@
 			</label>
 		</form>
 	</div>
-	<div class="">
-		<div class="grid lg:grid-cols-6 md:grid-cols-4 gap-8">
-
+	<div class="w-full">
 		{#if (searchTerm !== '' && filteredModels.length === 0) || models.length === 0}
-			No Models Found. Either Create a model or alter your search criteria.
+			<div class="text-center mt-6">No Models Found. Either Create a model or alter your search criteria.</div>
 		{:else if filteredModels.length > 0}
-
-
-			{#each filteredModels as model, i}
+			{#each filteredModels as model}
+				<div class="max-width-lg">
 				<ModelCard {model} />
+				</div>
 			{/each}
-
 		{:else}
-			{#each models as model, i}
+			{#each models as model}
+				<div class="grid lg:grid-cols-6 md:grid-cols-4 gap-8">
 				<ModelCard {model} />
+				</div>
 			{/each}
 		{/if}
-	</div>
 	</div>
 </div>
 
