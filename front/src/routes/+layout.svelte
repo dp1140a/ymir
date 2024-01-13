@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { base } from '$app/paths';
 	import {page} from "$app/stores";
-
-	// The ordering of these imports is critical to your app working properly
+	import { initializeStores } from '@skeletonlabs/skeleton';
 	import { TabGroup, TabAnchor } from '@skeletonlabs/skeleton';
 	import '../app.postcss';
 	import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom';
@@ -10,6 +9,8 @@
 	import { AppShell, AppBar } from '@skeletonlabs/skeleton';
 	import { popup } from '@skeletonlabs/skeleton';
 	import type { PopupSettings } from '@skeletonlabs/skeleton';
+
+	initializeStores();
 
 	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow });
 	let comboboxValue: string;
