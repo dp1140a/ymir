@@ -29,6 +29,7 @@ uploads/*
 reports/*
 scripts/*
 VERSION
+ymir*.db
 
 #Sveltekit
 front/node_modules
@@ -42,7 +43,6 @@ front/.vercel_build_output
 front/.svelte-kit
 front/.vscode
 front/.npmrc
-
 
 #IDES
 .idea/*
