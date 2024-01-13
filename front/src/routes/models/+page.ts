@@ -1,14 +1,13 @@
 import { _apiUrl } from '$lib/Utils';
 
-export const load = async ({ fetch, params }) => {
+export const load = async ({ fetch }) => {
 	const url = _apiUrl('/v1/model');
 	//let url = "/v1/model";
-	let res = await fetch(url);
+	const res = await fetch(url);
 	if (!res.ok) {
 		throw `Error while fetching data from ${url} (${res.status} ${res.statusText}).`;
 	}
-	const models = await res.json();
-	console.log(models)
+	const models = await res.json()
 	return { url, models };
 };
 
