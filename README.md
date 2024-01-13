@@ -15,7 +15,7 @@ Plus Im pretty sure my next printer is gonna be a Voron. Lastly I wanted somethi
 not have to create an account on.
 
 ## Thank you:
-* Your Name Here <-- Always looking for help
+* Your Name Here <-- Always looking for help (Especially with Testing Svelte Frontends)
 
 ## Features
 * Add, edit, and delete model
