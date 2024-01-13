@@ -15,6 +15,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/exp/maps"
 	"ymir/pkg/api"
 	"ymir/pkg/api/model/types"
 	types2 "ymir/pkg/api/printer/types"
@@ -244,7 +245,8 @@ func (mh ModelHandler) create(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	_, err = mh.Service.(ModelServiceIface).CreateModel(model)
+	//@TODO Note:  not sure why this works with the Printerstore but not the ModelStore.
+	_, err = mh.Service.(ModelService).CreateModel(model)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -270,7 +272,7 @@ func (mh ModelHandler) update(w http.ResponseWriter, r *http.Request) {
 	if log.GetLevel() == log.DebugLevel {
 		fmt.Println(model.Json())
 	}
-	err = mh.Service.(ModelServiceIface).UpdateModel(model)
+	err = mh.Service.(ModelService).UpdateModel(model)
 	if err != nil {
 		log.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -290,7 +292,7 @@ func (mh ModelHandler) delete(w http.ResponseWriter, r *http.Request) {
 	if log.GetLevel() == log.DebugLevel {
 		fmt.Printf("id : %v\n", modelId)
 	}
-	err := mh.Service.(ModelServiceIface).DeleteModel(modelId)
+	err := mh.Service.(ModelService).DeleteModel(modelId)
 	if err != nil {
 		log.Errorf("delete printer handler error: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -305,13 +307,13 @@ func (mh ModelHandler) delete(w http.ResponseWriter, r *http.Request) {
 GET /model (200, 500) -- get all models
 */
 func (mh ModelHandler) listAll(w http.ResponseWriter, r *http.Request) {
-	models, err := mh.Service.(ModelServiceIface).ListModels()
+	models, err := mh.Service.(ModelService).ListModels()
 	if err != nil {
-		log.Errorf("list all models service error: %v", err)
+		log.Error("list all models service error: ", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	js, err := json.Marshal(models)
+	js, err := json.Marshal(maps.Values(models))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -340,7 +342,7 @@ func (mh ModelHandler) inspect(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "modelId is missing or bad", http.StatusBadRequest)
 	}
 	log.Debugf("inspecting modelId: %v", modelId)
-	model, err := mh.Service.(ModelServiceIface).GetModel(modelId)
+	model, err := mh.Service.(ModelService).GetModel(modelId)
 	if err != nil {
 		log.Errorf("inspect model service error: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
