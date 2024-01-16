@@ -1,5 +1,7 @@
 # Ymir
-Last Update: 8Jan24
+Pronouced - (ˈē-ˌmir')
+
+Last Update: 16Jan24
 
 Ymir is a 3D model manager. In a nutshell it is a light and local version of the printables.com website.
 
@@ -12,7 +14,7 @@ Right now Ymir will only connect to printers using OctoPrint.
 
 I get why Prusa does that and Im cool with it. In fact I own a Prusa printer myself. But a lot of folks dont. 
 Plus Im pretty sure my next printer is gonna be a Voron. Lastly I wanted something I could run locally and
-not have to create an account on.
+not have to create an account on. So since Im a somewhat technical guy I decided to just write my own.
 
 ## Thank you:
 * Your Name Here <-- Always looking for help (Especially with Testing Svelte Frontends)
@@ -85,6 +87,7 @@ You can run the UI separately in dev mode with:
 ```bash
 cd front
 npm run dev
+#Then run the backend server from either cli or your IDE
 ```
 or
 
