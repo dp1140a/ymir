@@ -7,12 +7,18 @@
 
 	const getVersion = async () => {
 		const url = _apiUrl('/v1/version');
-		const res = await fetch(url);
-		//console.log(url);
-		if (!res.ok) {
-			throw `Error while fetching data from ${url} (${res.status} ${res.statusText}).`;
+		let  Version  = "Dev"
+		try {
+			const res = await fetch(url);
+			if (!res.ok) {
+				console.log("bad shit")
+				throw `Error while fetching data from ${url} (${res.status} ${res.statusText}).`;
+			} else {
+				Version = await res.json();
+			}
+		} catch (err) {
+		 console.log(err)
 		}
-		const { Version } = await res.json();
 		return Version;
 	};
 </script>
@@ -21,8 +27,10 @@
 	loading...
 {:then Version}
 	<div class="container mx-auto p-8 space-y-8">
-		<h1 class="h1">Ymir</h1>
-		Version from Server: {Version}
+		<span class="flex justify-right">
+			<h1 class="h1 logo">ᛃᛗᛁᚱ</h1><h1 class="h1 pt-6">- Ymir (ˈē-ˌmir')</h1>
+		</span>
+		<h3 class="h3">Version from Server: {Version}</h3>
 		<h3 class="h3">Description:</h3>
 		<p>
 			Ymir is a 3D model manager. In a nutshell it is a light and local version of the
