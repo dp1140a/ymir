@@ -1,19 +1,22 @@
 import { _apiUrl } from '$lib/Utils';
+import type { Model } from '$lib/Model';
 
 export const load = async ({ fetch }) => {
-	const url = _apiUrl('/v1/model');
+	const url:string = _apiUrl('/v1/model');
 	//let url = "/v1/model";
-	const res = await fetch(url);
+	const res:Response = await fetch(url);
 	if (!res.ok) {
 		throw `Error while fetching data from ${url} (${res.status} ${res.statusText}).`;
 	}
-	const models = await res.json()
-	return { url, models };
-};
+	const modJSON = await res.json()
 
-/*
-const apiUrl = (path: string) => {
-	//console.log(`${import.meta.env.VITE_API_URL}`);
-	return `${import.meta.env.VITE_API_URL || 'http://localhost:8081'}${path}`;
-};
+	/*
+	Due to the change on the backend we now get a map[string]Model.
+	We can change that here to a []Model or modify the page to work with
+	the new map
  */
+	const modMap:Map<string, Model> = new Map<string, Model>(Object.entries(modJSON))
+	const models:Model[] = [...modMap.values()];
+
+	return {url, models}
+};
