@@ -20,22 +20,22 @@ type MockModelService struct {
 	models []types.Model
 }
 
-func NewMockModelService() MockModelService {
-	return MockModelService{
+func NewMockModelService() *MockModelService {
+	return &MockModelService{
 		models: getTestModels(),
 	}
 }
 
-func (m MockModelService) CreateModel(types.Model) (string, error) {
+func (m *MockModelService) CreateModel(types.Model) (string, error) {
 	return "", nil
 }
 
-func (m MockModelService) ListModels() (map[string]types.Model, error) {
-	// Simulate returning a list of models for testing.
+func (m *MockModelService) ListModels() (map[string]types.Model, error) {
 	models := map[string]types.Model{}
 	for i := 0; i < len(m.models); i++ {
 		models[m.models[i].Id] = m.models[i]
 	}
+
 	return models, nil
 }
 
@@ -45,43 +45,47 @@ func (m MockModelService) GetModel(id string) (types.Model, error) {
 	return m.models[1], nil
 }
 
-func (m MockModelService) UpdateModel(types.Model) (err error) {
+func (m *MockModelService) UpdateModel(types.Model) (err error) {
 	return nil
 }
 
-func (m MockModelService) DeleteModel(id string) error {
+func (m *MockModelService) DeleteModel(id string) error {
 	return nil
 }
 
-func (m MockModelService) ExportModel(path string, writer io.Writer) error {
+func (m *MockModelService) ExportModel(path string, writer io.Writer) error {
 	return nil
 }
 
-func (m MockModelService) UploadFile(file multipart.File, filename string, basePath string, isExistingModel bool) (key string, err error) {
+func (m *MockModelService) UploadFilesExistingModel(file multipart.File, filename string, basePath string) (string, error) {
 	return "", nil
 }
 
-func (m MockModelService) FetchModelImage(imagePath string) (imageBytes []byte, err error) {
+func (m *MockModelService) UploadFilesNewModel(file multipart.File, filename string) (string, error) {
+	return "", nil
+}
+
+func (m *MockModelService) FetchModelImage(imagePath string) (imageBytes []byte, err error) {
 	return nil, nil
 }
 
-func (m MockModelService) FetchSTL(filepath string) (stlBytes []byte, err error) {
+func (m *MockModelService) FetchSTL(filepath string) (stlBytes []byte, err error) {
 	return nil, nil
 }
 
-func (m MockModelService) FetchSTLThumbnail(filepath string) string {
-	return ""
+func (m *MockModelService) FetchSTLThumbnail(filepath string) (string, error) {
+	return "", nil
 }
 
-func (m MockModelService) AddNote(model types.Model) error {
+func (m *MockModelService) AddNote(model types.Model) error {
 	return nil
 }
 
-func (m MockModelService) GetGCodeMetaData(path string) (gcode.GCodeMetaData, error) {
+func (m *MockModelService) GetGCodeMetaData(path string) (gcode.GCodeMetaData, error) {
 	return gcode.GCodeMetaData{}, nil
 }
 
-func (m MockModelService) GetName() string {
+func (m *MockModelService) GetName() string {
 	return ""
 }
 
