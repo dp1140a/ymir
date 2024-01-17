@@ -3,7 +3,7 @@
 	import type {Model} from "$lib/Model"
 	export let data;
 
-	const models = data.models;cd ..
+	const models = data.models;
 
 	//https://svelte.dev/repl/e67e1a90ef3945ec988bf39f6a10b6b3?version=3.32.3
 	let filteredModels = [];
