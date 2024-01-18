@@ -30,8 +30,8 @@ MAKEFLAGS += --no-print-directory
 GOPATH := $(shell go env GOPATH)
 GOBIN := $(GOPATH)/bin
 
-ARCHES ?= amd64
-OSES ?= linux darwin
+ARCHES ?= amd64 arm64
+OSES ?= linux darwin windows
 OUTTPL = $(DIST_DIR)/$(APP_NAME)-$(VERSION)-{{.OS}}_{{.Arch}}
 GZCMD = tar -czf
 ZIPCMD = zip
@@ -50,6 +50,13 @@ LDFLAGS = -X '$(APP_NAME)/pkg/version.APP_NAME=$(APP_NAME)' \
 deps:
 	go mod download -x
 	@echo $(DONE) "Deps"
+
+## build: Install missing dependencies. Builds binary in ./build
+.PHONY: front
+front:
+	@echo "Building Front UI"
+	cd front/ && npm run build
+	@echo $(DONE) "Front\n"
 
 ## build: Install missing dependencies. Builds binary in ./build
 .PHONY: build
@@ -72,7 +79,7 @@ dist: clean reports build
 	cd "$(DIST_DIR)"; for dir in ./**; do \
 		#cp $(PKG_DIR)/config.toml $$dir; \
 		#cp -r $(PKG_DIR)/etc $$dir; \
-		cp $(PKG_DIR)/scripts/* $$dir;\
+		#cp $(PKG_DIR)/scripts/* $$dir;\
 		$(GZCMD) "$(basename "$$dir").tar.gz" "$$dir"; \
 	done
 	cd "$(DIST_DIR)"; find . -maxdepth 1 -type f -printf "$(SHACMD) %P | tee \"./%P.sha\"\n" | sh
