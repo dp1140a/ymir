@@ -51,7 +51,7 @@ func init() {
 }
 
 func runImport() {
-	imp := importer.NewImporter(Path)
+	imp := importer.NewImporter(Path, inDb)
 	imp.Tags = *(*[]types.Tags)(unsafe.Pointer(&Tags))
 	err := imp.FindModels()
 	if err != nil {
