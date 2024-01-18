@@ -1,4 +1,4 @@
-printConfig = true
+printConfig = false
 
 [logging]
 logFile = "log/ymir.log"
