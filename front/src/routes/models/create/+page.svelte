@@ -1,19 +1,19 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	import { InputChip } from '@skeletonlabs/skeleton';
-	import { Modal, getModalStore } from '@skeletonlabs/skeleton';
-	import type { ModalSettings, ModalComponent } from '@skeletonlabs/skeleton';
-	import FilePond, { registerPlugin, supported } from 'svelte-filepond'; //https://pqina.nl/filepond/docs/
+	import {getModalStore } from '@skeletonlabs/skeleton';
+	import type { ModalSettings} from '@skeletonlabs/skeleton';
+	import FilePond, { registerPlugin } from 'svelte-filepond'; //https://pqina.nl/filepond/docs/
 	import FilePondPluginImagePreview from 'filepond-plugin-image-preview';
 	import 'filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css';
 	import FilePondPluginFileMetadata from 'filepond-plugin-file-metadata';
 	import CKEditor from '$lib/Ckeditor.svelte';
 	import Editor from 'ckeditor5-custom-build/build/ckeditor'; // https://github.com/techlab23/ckeditor5-svelte/blob/master/src/Ckeditor.svelte
-	import { _apiUrl } from "$lib/Utils";
+	import { _apiUrl } from '$lib/Utils';
 
-	const modalStore = getModalStore()
+	const modalStore = getModalStore();
 	// we need the same type
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	type Data = {
 		success: boolean;
 		errors: Record<string, string>;
@@ -22,11 +22,11 @@
 	//export let data;
 
 	// used in the template
-	let form: Data;
+	//let form: Data;
 	// Register the plugin
 	registerPlugin(FilePondPluginFileMetadata, FilePondPluginImagePreview);
 
-	let fTypes = ['image/*', 'model/stl'];
+	//let fTypes = ['image/*', 'model/stl'];
 	let errorType = '';
 	let errorMessage = '';
 	let errorVisible: boolean = false;
@@ -94,6 +94,7 @@
 				break;
 		}
 		if (extensions.includes(fileItem.fileExtension)) {
+			/* empty */
 		} else {
 			fileItem.abortLoad();
 			errorType = 'File Upload Error';
@@ -105,12 +106,12 @@
 		}
 	}
 
-	function hideSVG(e) {
+	function hideSVG() {
 		//console.log('Firing');
 		const elms = Array.from(document.getElementsByClassName('filepond--image-preview'));
 		elms.forEach((elm) => {
 			//console.log(elm.style);
-			elm.setAttribute("style", 'background-color: rgba(255, 255, 255, 0)');
+			elm.setAttribute('style', 'background-color: rgba(255, 255, 255, 0)');
 		});
 	}
 
@@ -119,7 +120,7 @@
 		const formEl = event.target as HTMLFormElement;
 		const data = new FormData(formEl);
 
-		const response = await fetch(_apiUrl('/v1/model'), {
+		await fetch(_apiUrl('/v1/model'), {
 			method: 'POST',
 			body: data
 		})
@@ -148,13 +149,17 @@
 					type: 'alert',
 					title: 'Success!',
 					body: 'The model ' + data.get('modelName') + ' has been successfully added.',
-					response: () => {goto("/models")}
+					response: () => {
+						goto('/models');
+					}
 				};
 				modalStore.trigger(modal);
 				return response;
-			}).then((response) => {
-				console.log("Going to Models Page")
-			}).catch((error) => {
+			})
+			.then(() => {
+				console.log('Going to Models Page');
+			})
+			.catch((error) => {
 				console.error(error);
 				errorType = 'Model Create Error';
 				errorMessage = 'There was an error on the server when creating the model';
@@ -167,7 +172,10 @@
 	let editor = Editor;
 	//let editor = null;
 	// Reference to initialised editor instance
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	let editorInstance = null;
+
 	// Setting up any initial data for the editor
 	let editorData = 'write description here';
 
@@ -184,7 +192,7 @@
 	 * 'tableColumn', 'tableRow', 'mergeTableCells']
 	 *
 	 */
-	let editorConfig = {};
+	//let editorConfig = {};
 
 	function onReady({ detail: editor }) {
 		// Insert the toolbar before the editable area.
@@ -201,9 +209,10 @@
 	<form on:submit={handleForm}>
 		<div>
 			<div class="flex w-full">
-				<div class="flex-none w-1/2"><h1 class="h1 mt-10">New Model</h1></div>
-				<div class="flex-none w-1/2 ">
-					<button type="submit" class="btn my-10 variant-filled-warning float-right">Submit</button></div>
+				<div class="w-1/2 flex-none"><h1 class="h1 mt-10">New Model</h1></div>
+				<div class="w-1/2 flex-none">
+					<button type="submit" class="variant-filled-warning btn float-right my-10">Submit</button>
+				</div>
 			</div>
 			<div>
 				{#if errorVisible}
@@ -220,7 +229,7 @@
 						<div class="alert-actions">
 							<button
 								style="width: 1.5em;"
-								class="btn-icon variant-filled"
+								class="variant-filled btn-icon"
 								on:click|stopPropagation={() => {
 									errorVisible = false;
 								}}
@@ -233,7 +242,7 @@
 				{/if}
 			</div>
 		</div>
-		<fieldset class="bg-surface-200 p-10 rounded-lg">
+		<fieldset class="rounded-lg bg-surface-200 p-10">
 			<legend class="text-2xl">Basic Information</legend>
 			<label class="label mb-8" for="">
 				<span>Model name</span>
@@ -255,8 +264,8 @@
 					required
 				/>
 			</label>
-				<label class="label mb-8" for="">
-					<span>Full Description</span>
+			<label class="label mb-8" for="">
+				<span>Full Description</span>
 				<div>
 					<CKEditor name="description" bind:editor on:ready={onReady} bind:value={editorData} />
 				</div>
@@ -274,8 +283,8 @@
 			</label>
 		</fieldset>
 
-		<hr class="!border-t-2 my-6" />
-		<fieldset class="bg-surface-200 p-10 rounded-lg">
+		<hr class="my-6 !border-t-2" />
+		<fieldset class="rounded-lg bg-surface-200 p-10">
 			<legend class="text-2xl">Files</legend>
 			<!-- Print Files -->
 			<label class="label" for="">
@@ -363,7 +372,7 @@
 			</label>
 		</fieldset>
 		<span style="float: right;"
-			><button type="submit" class="btn my-10 variant-filled-warning">Submit</button></span
+			><button type="submit" class="variant-filled-warning btn my-10">Submit</button></span
 		>
 	</form>
 </div>

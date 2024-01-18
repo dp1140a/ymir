@@ -57,7 +57,7 @@ export class FileUploadError extends Error {
 }
 
 export const CheckFileType = (fileItem: FilePondFile): FileUploadError => {
-	let pondName = fileItem.getMetadata().pondName;
+	const pondName = fileItem.getMetadata().pondName;
 	let extensions: string[];
 	switch (pondName) {
 		case 'Image_Files':
@@ -76,7 +76,7 @@ export const CheckFileType = (fileItem: FilePondFile): FileUploadError => {
 	if (extensions.includes(fileItem.fileExtension)) {
 		return null;
 	} else {
-		let msg: string = `. ${fileItem.fileExtension} is an invalid extension for ${fileItem
+		const msg: string = `. ${fileItem.fileExtension} is an invalid extension for ${fileItem
 			.getMetadata()
 			.pondName.replace('_', ' ')}`;
 		return new FileUploadError(msg, extensions);

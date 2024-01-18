@@ -4,7 +4,7 @@
 	export let notes = [];
 
 	let noteText = '';
-	let disabled = true
+	let disabled = true;
 	function isDisabled() {
 		disabled = false;
 	}
@@ -12,11 +12,11 @@
 	function newNote(event: Event) {
 		const formEl = event.target as HTMLFormElement;
 		notes.unshift({
-			"text": noteText,
-			"date": new Date().toISOString()
+			text: noteText,
+			date: new Date().toISOString()
 		});
-		notes = notes
-		disabled = true
+		notes = notes;
+		disabled = true;
 		formEl.reset();
 	}
 </script>
@@ -35,13 +35,13 @@
 				on:input={isDisabled}
 				placeholder="Note Text Here"
 			/>
-			<button type="submit" class="btn variant-filled-primary" disabled={disabled}>
+			<button type="submit" class="variant-filled-primary btn" {disabled}>
 				<span><i class="fa-regular fa-floppy-disk" /></span>
 				<span>Save Note</span>
 			</button>
 		</form>
 	</label>
-	<hr class="!border-t-2 my-6" />
+	<hr class="my-6 !border-t-2" />
 	<div class="table-container">
 		<!-- Native Table Element -->
 		<table class="table table-hover pb-4">

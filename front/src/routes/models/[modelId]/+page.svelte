@@ -1,19 +1,19 @@
 <script lang="ts">
-	import { goto, invalidateAll } from '$app/navigation';
-	import { page } from '$app/stores';
-	import { TabGroup, Tab, TabAnchor, InputChip } from "@skeletonlabs/skeleton";
+	import { invalidateAll } from '$app/navigation';
+	//import { page } from '$app/stores';
+	import { TabGroup, Tab, InputChip } from '@skeletonlabs/skeleton';
 	import { getModalStore, type ModalSettings } from '@skeletonlabs/skeleton';
 	import Notes from './Notes.svelte';
 	import Files from './Files.svelte';
-	import {handleError, _apiUrl} from "$lib/Utils";
+	import { handleError, _apiUrl } from '$lib/Utils';
 
 	export let data;
 	let model = data.model;
-	const modelId = $page.params.modelId;
-const modalStore = getModalStore()
+	//const modelId = $page.params.modelId;
+	const modalStore = getModalStore();
 	let errorType = '';
 	let errorMessage = '';
-	let validExtensions ='';
+	let validExtensions = '';
 	let errorVisible: boolean = false;
 
 	// Carousel ---
@@ -50,7 +50,7 @@ const modalStore = getModalStore()
 			type: 'alert',
 			title: 'TODO:',
 			body: 'Not yet implemented',
-			buttonTextCancel: 'Got It!',
+			buttonTextCancel: 'Got It!'
 			//response: (e) => { }
 		};
 		modalStore.trigger(modal);
@@ -61,21 +61,23 @@ const modalStore = getModalStore()
 		errorType = err.detail.name;
 		errorMessage = err.detail.message;
 		validExtensions = err.detail.validExtensions;
-		errorVisible  = true;
-	}
+		errorVisible = true;
+	};
 
 	//Model Updated Modal
-	export const showUpdated = (title:string, body:string, reload: boolean) => {
+	export const showUpdated = (title: string, body: string, reload: boolean) => {
 		const modal: ModalSettings = {
 			type: 'alert',
 			title: title,
 			body: body,
-			buttonTextCancel: 'Cool!',
+			buttonTextCancel: 'Cool!'
 			//response: (e) => { invalidateAll() }
 		};
 
 		if (reload) {
-			modal.response = (e) => { reloadPage()}
+			modal.response = () => {
+				reloadPage();
+			};
 		}
 		modalStore.trigger(modal);
 	};
@@ -87,37 +89,41 @@ const modalStore = getModalStore()
 		//console.log(model)
 	}
 
-	const reloadPage = async() => {
-		await invalidateAll()
+	const reloadPage = async () => {
+		await invalidateAll();
 		model = data.model;
-	}
+	};
 
 	const saveModel = async () => {
 		//console.log(model)
-		const response = await fetch(_apiUrl(`/v1/model/${model._id}`), {
+		await fetch(_apiUrl(`/v1/model/${model._id}`), {
 			method: 'PUT',
 			headers: {
-				'Accept': 'application/json',
+				Accept: 'application/json',
 				'Content-Type': 'application/json'
 			},
 			body: JSON.stringify(model)
-		}).then(handleError) // skips to .catch if error is thrown
-			.then((response) => {
-				model._rev = response.rev;
-				showUpdated('Complete', 'Model has been successfully Updated', false);
-				saveDisabled = true
-		}).catch((error) => {
-			let errorMessage = 'Oops!  There was an error updating the model.<br/>Response was: ' + error;
-			showUpdated(error, errorMessage, true);
 		})
-	}
+			.then(handleError) // skips to .catch if error is thrown
+			.then(() => {
+				//model._rev = response.rev;
+				showUpdated('Complete', 'Model has been successfully Updated', false);
+				saveDisabled = true;
+			})
+			.catch((error) => {
+				let errorMessage =
+					'Oops!  There was an error updating the model.<br/>Response was: ' + error;
+				showUpdated(error, errorMessage, true);
+			});
+	};
 
-	const watchableArray = target => new Proxy(target, {
-		set(target, prop, value, receiver) {
-			needsSave();
-			return Reflect.set(target, prop, value, receiver);
-		}
-	});
+	const watchableArray = (target) =>
+		new Proxy(target, {
+			set(target, prop, value, receiver) {
+				needsSave();
+				return Reflect.set(target, prop, value, receiver);
+			}
+		});
 
 	//Watchable Files Arrays for Files Component to trigger Save Model on Change
 	let printFiles = watchableArray(model.printFiles);
@@ -125,6 +131,7 @@ const modalStore = getModalStore()
 	let otherFiles = watchableArray(model.otherFiles);
 	let notes = watchableArray(model.notes);
 </script>
+
 <div>
 	{#if errorVisible}
 		<aside class="alert variant-filled-error mb-4">
@@ -142,10 +149,10 @@ const modalStore = getModalStore()
 			<div class="alert-actions">
 				<button
 					style="width: 1.5em;"
-					class="btn-icon variant-filled"
+					class="variant-filled btn-icon"
 					on:click|stopPropagation={() => {
-									errorVisible = false;
-								}}
+						errorVisible = false;
+					}}
 				>
 					<i class="fa-solid fa-xmark" />
 				</button>
@@ -154,51 +161,50 @@ const modalStore = getModalStore()
 	{/if}
 </div>
 <h1 class="h1">{model.displayName}</h1>
-<hr class="!border-t-2 my-4" />
+<hr class="my-4 !border-t-2" />
 <div class="grid grid-flow-col gap-8">
 	<div class="max-w-2xl">
 		<!-- Carousel -->
-		<div class="card p-4 grid grid-cols-[auto_1fr_auto] gap-4 items-center">
+		<div class="card grid grid-cols-[auto_1fr_auto] items-center gap-4 p-4">
 			<!-- Button: Left -->
-			<button type="button" class="btn-icon variant-filled" on:click={carouselLeft}>
+			<button type="button" class="variant-filled btn-icon" on:click={carouselLeft}>
 				<i class="fa-solid fa-arrow-left" />
 			</button>
 			<!-- Full Images -->
 			<div
 				bind:this={elemCarousel}
-				class="snap-x snap-mandatory scroll-smooth flex overflow-x-auto"
+				class="flex snap-x snap-mandatory overflow-x-auto scroll-smooth"
 			>
-				{#if (model.images.length >0)}
+				{#if model.images.length > 0}
 					{#each model.images as image}
 						<img
-							class="snap-center object-cover h-[480px] w-full rounded-md"
-							src={ _apiUrl("/v1/model/image?path=").concat(model.basePath,'/',image.path)}
+							class="h-[480px] w-full snap-center rounded-md object-cover"
+							src={_apiUrl('/v1/model/image?path=').concat(model.basePath, '/', image.path)}
 							alt={image.path}
 							loading="lazy"
 						/>
 					{/each}
-					{:else}
+				{:else}
 					<img
-						class="snap-center object-cover h-[480px] w-full rounded-md"
+						class="h-[480px] w-full snap-center rounded-md object-cover"
 						src="/3d-model-icon.png"
 						alt="model placeholder"
 						loading="lazy"
 					/>
 				{/if}
-
 			</div>
 			<!-- Button: Right -->
-			<button type="button" class="btn-icon variant-filled" on:click={carouselRight}>
+			<button type="button" class="variant-filled btn-icon" on:click={carouselRight}>
 				<i class="fa-solid fa-arrow-right" />
 			</button>
 		</div>
 		<!-- Thumbnails -->
-		<div class="card p-4 grid grid-cols-6 gap-4">
+		<div class="card grid grid-cols-6 gap-4 p-4">
 			{#each model.images as image, i}
 				<button type="button" on:click={() => carouselThumbnail(i)}>
 					<img
 						class="rounded-container-token"
-						src={ _apiUrl("/v1/model/image?path=").concat(model.basePath,'/',image.path)}
+						src={_apiUrl('/v1/model/image?path=').concat(model.basePath, '/', image.path)}
 						alt={image.path}
 						loading="lazy"
 					/>
@@ -217,61 +223,80 @@ const modalStore = getModalStore()
 			on:add={needsSave}
 			on:remove={needsSave}
 		/>
-		<hr class="!border-t-2 my-4" />
-		<div class="h4">Model Summary:<span class="h6 text-xs float-right">*click to edit</span></div>
-		<div contenteditable="true" bind:textContent={model.summary} on:input={needsSave} class="editable mt-2">{model.summary}</div>
-
-		<hr class="!border-t-2 my-4" />
-		<div class="h4 mb-4">Model Meta Data:</div>
-		{#if data.metaData }
-		<div class="grid w-fit gap-2 grid-cols-7">
-			<div class="attr">
-				<i class="icon fa-regular fa-clock" />
-				<div>{data.metaData.totalTime}</div>
-			</div>
-			<div class="attr">
-				<i class="icon fa-regular fa-file-code" />
-				<div>{model.printFiles.length} file</div>
-			</div>
-			<div class="attr">
-				<i class="icon iconfont-layer-height" />
-				<div>{data.metaData.layerHeight}mm</div>
-			</div>
-			<div class="attr">
-				<i class="icon iconfont-nozzle" />
-				<div>{data.metaData.nozzleDiameter}mm</div>
-			</div>
-			<div class="attr">
-				<i class="icon iconfont-material-spool" />
-				<div>{data.metaData.material}</div>
-			</div>
-			<div class="attr">
-				<i class="icon iconfont-layer-height" />
-				<div>{data.metaData.filamentUsedG}g</div>
-			</div>
-			<div class="attr">
-				<i class="icon iconfont-layer-height" />
-				<div>{data.metaData.printerType}</div>
-			</div>
+		<hr class="my-4 !border-t-2" />
+		<div class="h4">Model Summary:<span class="h6 float-right text-xs">*click to edit</span></div>
+		<div
+			contenteditable="true"
+			bind:textContent={model.summary}
+			on:input={needsSave}
+			class="editable mt-2"
+		>
+			{model.summary}
 		</div>
-				{:else }
-			<h5 class="h6 border rounded variant-ghost-warning text-center py-1 my-6">
-				No Model MetaData Available.<br/>
+
+		<hr class="my-4 !border-t-2" />
+		<div class="h4 mb-4">Model Meta Data:</div>
+		{#if data.metaData}
+			<div class="grid w-fit grid-cols-7 gap-2">
+				<div class="attr">
+					<i class="icon fa-regular fa-clock" />
+					<div>{data.metaData.totalTime}</div>
+				</div>
+				<div class="attr">
+					<i class="icon fa-regular fa-file-code" />
+					<div>{model.printFiles.length} file</div>
+				</div>
+				<div class="attr">
+					<i class="icon iconfont-layer-height" />
+					<div>{data.metaData.layerHeight}mm</div>
+				</div>
+				<div class="attr">
+					<i class="icon iconfont-nozzle" />
+					<div>{data.metaData.nozzleDiameter}mm</div>
+				</div>
+				<div class="attr">
+					<i class="icon iconfont-material-spool" />
+					<div>{data.metaData.material}</div>
+				</div>
+				<div class="attr">
+					<i class="icon iconfont-layer-height" />
+					<div>{data.metaData.filamentUsedG}g</div>
+				</div>
+				<div class="attr">
+					<i class="icon iconfont-layer-height" />
+					<div>{data.metaData.printerType}</div>
+				</div>
+			</div>
+		{:else}
+			<h5 class="variant-ghost-warning h6 my-6 rounded border py-1 text-center">
+				No Model MetaData Available.<br />
 				Need a G-Code file uploaded to the model.
 			</h5>
-			{/if}
-		<hr class="!border-t-2 my-4" />
+		{/if}
+		<hr class="my-4 !border-t-2" />
 		<div class="float-right">
-			<button disabled={saveDisabled} type="button" class="btn w-48 my-1 variant-filled-success" on:click={saveModel}>
+			<button
+				disabled={saveDisabled}
+				type="button"
+				class="variant-filled-success btn my-1 w-48"
+				on:click={saveModel}
+			>
 				<span><i class="fa-regular fa-floppy-disk"></i></span>
 				<span>Save Changes</span>
 			</button>
-			<a href={ _apiUrl("/v1/model/export?path=").concat(model.basePath, "&filename=",model.displayName)}>
-				<button type="button" class="btn w-48 my-1 variant-filled-warning">
+			<a
+				href={_apiUrl('/v1/model/export?path=').concat(
+					model.basePath,
+					'&filename=',
+					model.displayName
+				)}
+			>
+				<button type="button" class="variant-filled-warning btn my-1 w-48">
 					<span><i class="fa-solid fa-file-export" /></span>
 					<span>Download</span>
-				</button></a>
-			<button type="button" class="btn w-48 my-1 variant-filled-error" on:click={() => showNYI()}>
+				</button></a
+			>
+			<button type="button" class="variant-filled-error btn my-1 w-48" on:click={() => showNYI()}>
 				<span><i class="fa-solid fa-print" /></span>
 				<span>Print</span>
 			</button>
@@ -279,7 +304,7 @@ const modalStore = getModalStore()
 	</div>
 </div>
 
-<hr class="!border-t-2 my-6" />
+<hr class="my-6 !border-t-2" />
 <div class="mx-auto w-auto">
 	<TabGroup justify="justify-center">
 		<Tab bind:group={tabSet} name="Details" value={0}>
@@ -290,24 +315,30 @@ const modalStore = getModalStore()
 		<!-- Tab Panels --->
 		<div class="mx-auto w-full" slot="panel">
 			{#if tabSet === 0}
-				<div class=" w-fit mx-auto h2">Description<span class="h6 text-xs ml-4 float-right">*click to edit</span></div>
-				<div contenteditable="true" bind:textContent={model.description} on:input={needsSave}
-						 class="mt-6 w-full mx-auto cursor-text editable">
+				<div class=" h2 mx-auto w-fit">
+					Description<span class="h6 float-right ml-4 text-xs">*click to edit</span>
+				</div>
+				<div
+					contenteditable="true"
+					bind:textContent={model.description}
+					on:input={needsSave}
+					class="editable mx-auto mt-6 w-full cursor-text"
+				>
 					{model.description}
 				</div>
 			{:else if tabSet === 1}
-				<div class="w-fit mx-auto">
-				<Files
-					on:uploadError={showError}
-					modelBasePath={model.basePath}
-					bind:modelFiles={modelFiles}
-					bind:otherFiles={otherFiles}
-					bind:printFiles={printFiles}
-				/>
+				<div class="mx-auto w-fit">
+					<Files
+						on:uploadError={showError}
+						modelBasePath={model.basePath}
+						bind:modelFiles
+						bind:otherFiles
+						bind:printFiles
+					/>
 				</div>
 				<br />&nbsp;
 			{:else if tabSet === 2}
-				<Notes bind:notes={notes} id={model._id} rev={model._rev} />
+				<Notes bind:notes id={model._id} rev={model._rev} />
 			{/if}
 		</div>
 	</TabGroup>
@@ -320,12 +351,12 @@ const modalStore = getModalStore()
 	}
 
 	.editable:hover,
-	[contenteditable="true"]:active,
-	[contenteditable="true"]:focus{
+	[contenteditable='true']:active,
+	[contenteditable='true']:focus {
 		background: rgb(211, 211, 211);
-		border: 1px solid rgb(133,133,133);
+		border: 1px solid rgb(133, 133, 133);
 		border-radius: 4px;
-		outline:none;
+		outline: none;
 		padding: 8px;
 	}
 </style>

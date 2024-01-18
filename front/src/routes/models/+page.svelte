@@ -1,6 +1,6 @@
 <script lang="ts">
 	import ModelCard from '$lib/ModelCard.svelte';
-	import type {Model} from "$lib/Model"
+	import type { Model } from '$lib/Model';
 	export let data;
 
 	const models = data.models;
@@ -30,6 +30,7 @@
 		}));
 	};
 </script>
+
 <h1 class="h1 mt-4">Models</h1>
 <span>{models.length} Models</span>
 <div class="flex">
@@ -64,23 +65,24 @@
 	</div>
 	<div class="w-full">
 		{#if (searchTerm !== '' && filteredModels.length === 0) || models.length === 0}
-			<div class="text-center mt-6">No Models Found. Either Create a model or alter your search criteria.</div>
+			<div class="mt-6 text-center">
+				No Models Found. Either Create a model or alter your search criteria.
+			</div>
 		{:else if filteredModels.length > 0}
 			{#each filteredModels as model}
 				<div class="max-width-lg">
-				<ModelCard {model} />
+					<ModelCard {model} />
 				</div>
 			{/each}
 		{:else}
 			{#each models as model}
-				<div class="grid lg:grid-cols-6 md:grid-cols-4 gap-8">
-				<ModelCard {model} />
+				<div class="grid gap-8 md:grid-cols-4 lg:grid-cols-6">
+					<ModelCard {model} />
 				</div>
 			{/each}
 		{/if}
 	</div>
 </div>
-
 
 <style>
 </style>

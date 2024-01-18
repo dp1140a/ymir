@@ -2,14 +2,14 @@
 .logo {
 	background-clip: text;
 	background-image: linear-gradient(
-			to top,
-			#511d11,
-			#632415,
-			#7c2d1a,
-			#953620,
-			#a53c23,
-			#c07765,
-			#dbb1a7
+		to top,
+		#511d11,
+		#632415,
+		#7c2d1a,
+		#953620,
+		#a53c23,
+		#c07765,
+		#dbb1a7
 	);
 	color: #511d11;
 	font-weight: 400;

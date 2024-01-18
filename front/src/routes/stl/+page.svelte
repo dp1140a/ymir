@@ -1,5 +1,5 @@
 <script>
-	import { T, Canvas, useThrelte } from '@threlte/core';
+	import { T, Canvas} from '@threlte/core';
 
 	import { OrbitControls } from '@threlte/extras';
 
@@ -22,7 +22,7 @@
 				ref.lookAt(0, 1, 0);
 			}}
 		>
-			<OrbitControls enableDamping maxDistance={maxDistance} minDistance={minDistance} />
+			<OrbitControls enableDamping {maxDistance} {minDistance} />
 		</T.PerspectiveCamera>
 
 		<T.DirectionalLight position={[1, 10, 1]} intesity={'.5'} />

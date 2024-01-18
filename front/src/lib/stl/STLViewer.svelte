@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { T, Canvas} from '@threlte/core';
-	import { OrbitControls} from '@threlte/extras';
-	import { MeshStandardMaterial, Vector3} from 'three';
+	import { T, Canvas } from '@threlte/core';
+	import { OrbitControls } from '@threlte/extras';
+	import { MeshStandardMaterial, Vector3 } from 'three';
 
 	export let geometry;
 	export let ambientLightColor: number | [number, number, number] = [64, 64, 64];
@@ -13,15 +13,14 @@
 	export let width = 640;
 
 	//Ignore the svelte-check warning here
-	export let height = 480;
+	export const height = 480;
 
 	let msm = new MeshStandardMaterial({ color: materialColor });
 	let camera;
 	let model;
 	//let controls;
 
-
-	let ready = undefined;
+	//let ready = undefined;
 
 	function fitAndCenter() {
 		let middle = new Vector3();
@@ -30,33 +29,37 @@
 		//model.geometry.applyMatrix4(new Matrix4().makeTranslation(-middle.x, -middle.y, -middle.z ) );
 		//model.geometry.rotateX(Math.PI/-2);
 		//model.geometry.rotateY(Math.PI/-6);
-		let largestDimension = Math.max(geometry.boundingBox.max.x, geometry.boundingBox.max.y, geometry.boundingBox.max.z)
-		let zMultiple = 1.25
-		if (largestDimension <= 100 ){
-			zMultiple = zMultiple*2
+		let largestDimension = Math.max(
+			geometry.boundingBox.max.x,
+			geometry.boundingBox.max.y,
+			geometry.boundingBox.max.z
+		);
+		let zMultiple = 1.25;
+		if (largestDimension <= 100) {
+			zMultiple = zMultiple * 2;
 		}
 		camera.position.z = largestDimension * zMultiple;
 		camera.position.x = 0;
 		camera.position.y = 0;
 		//console.log(geometry.boundingBox.max.x + ',' + geometry.boundingBox.max.y + ',' + geometry.boundingBox.max.z)
 	}
-
 </script>
 
-	<Canvas size={{width:width, height: 1000}}>
-		<T.PerspectiveCamera
-			makeDefault
-			bind:ref={camera}
-			on:create={() => {
-				fitAndCenter()
-				ready = true
-			}}
-		>
-			<OrbitControls nableDamping />
-			<T.DirectionalLight position={[1, 1, 1]} intesity={spotlightIntensity} />
-			<T.HemisphereLight color={ambientLightColor} intensity={ambientLightIntensity} />
-		</T.PerspectiveCamera>
-			<T.Mesh {geometry} material={msm} bind:ref={model}/>
-	</Canvas>
+<Canvas size={{ width: width, height: 1000 }}>
+	<T.PerspectiveCamera
+		makeDefault
+		bind:ref={camera}
+		on:create={() => {
+			fitAndCenter();
+			//ready = true;
+		}}
+	>
+		<OrbitControls nableDamping />
+		<T.DirectionalLight position={[1, 1, 1]} intesity={spotlightIntensity} />
+		<T.HemisphereLight color={ambientLightColor} intensity={ambientLightIntensity} />
+	</T.PerspectiveCamera>
+	<T.Mesh {geometry} material={msm} bind:ref={model} />
+</Canvas>
+
 <style>
 </style>
