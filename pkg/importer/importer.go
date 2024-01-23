@@ -55,8 +55,12 @@ func (i *Importer) walk(path string, m *types.Model) error {
 	dirs, _ := os.ReadDir(path)
 	fmt.Printf("  %v entries\n", len(dirs))
 	for _, f := range dirs {
+		fmt.Printf("Path: %v\n", path)
 		relPath, _ := filepath.Rel(i.baseDir, path)
-		fName := fmt.Sprintf("%v/%v", relPath, f.Name())
+		//relPath, _ = filepath.Rel(relPath, path)
+		fmt.Printf("RelPath: %v\n", relPath)
+		fName := fmt.Sprintf("%v/%v", filepath.Base(relPath), f.Name())
+		fmt.Printf("fName: %v\n", fName)
 		if f.IsDir() {
 			if onlyDirectories(path) {
 				fmt.Printf("   %v is only directories moving on\n", path)
@@ -75,7 +79,7 @@ func (i *Importer) walk(path string, m *types.Model) error {
 				fmt.Println("Creating Model:")
 				m = &types.Model{
 					Id:          utils.GenId(),
-					DisplayName: cleanDisplayName(filepath.Base(i.baseDir)),
+					DisplayName: cleanDisplayName(filepath.Base(relPath)),
 					BasePath:    path,
 					Tags:        i.Tags,
 					ModelFiles:  []types.FileType{},
@@ -113,7 +117,7 @@ func (i *Importer) walk(path string, m *types.Model) error {
 				if f.Name() == "model.json" {
 					continue
 				}
-				fmt.Printf("  Adding Other File: %v\n", f.Name())
+				//fmt.Printf("  Adding Other File: %v\n", f.Name())
 				m.OtherFiles = append(m.OtherFiles, types.FileType{Path: f.Name()})
 				continue
 			}
