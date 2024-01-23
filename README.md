@@ -151,3 +151,4 @@ A users manual is coming soon.
 * Config subcommand to generate a default config
 * Full Docs site
 * Clean up the codebase -- This was my first time creating a svelte app
+* Refactor Svelte fetches -- [reference](https://scottspence.com/posts/sveltekit-data-loading-understanding-the-load-function)
