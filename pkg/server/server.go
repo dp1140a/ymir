@@ -9,6 +9,7 @@ import (
 	"ymir/front"
 	"ymir/pkg"
 	"ymir/pkg/api"
+	"ymir/pkg/api/admin"
 	"ymir/pkg/api/model"
 	"ymir/pkg/api/printer"
 	"ymir/pkg/logger/httplogger"
@@ -67,6 +68,7 @@ func NewServer() (*Server, error) {
 	s.Router.Mount(fmt.Sprintf("%s/debug", _API_VERSION), middleware.Profiler())
 	s.Handlers = append(s.Handlers, model.NewModelHandler())
 	s.Handlers = append(s.Handlers, printer.NewPrinterHandler())
+	s.Handlers = append(s.Handlers, admin.NewAdminHandler())
 
 	//Append the base and static handlers Last
 	s.Handlers = append(s.Handlers, api.NewBaseHandler(s.HttpLogger, s.Router))

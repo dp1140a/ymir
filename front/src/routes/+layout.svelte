@@ -86,6 +86,11 @@
 					<nav class="list-nav">
 						<ul>
 							<li class="hover:variant-ghost-error">
+								<a href="{base}/admin">
+									<span>Admin</span>
+								</a>
+							</li>
+							<li class="hover:variant-ghost-error">
 								<a href="{base}/docs">
 									<span>Docs</span>
 								</a>

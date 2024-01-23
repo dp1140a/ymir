@@ -19,6 +19,7 @@ type PrinterStoreIFace interface {
 	Delete(id string) (err error)
 	List() (printers map[string]types.Printer, err error)
 	Inspect(id string) (printer types.Printer, err error)
+	Truncate() (err error)
 }
 
 type PrinterStore struct {
