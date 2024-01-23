@@ -17,8 +17,8 @@
 	}
 </script>
 
-<div class="card h-96 w-80 text-center" in:fade={{ duration: 750, easing: expoIn }}>
-	<header class="card-header h-16 flex-wrap rounded-t-lg bg-surface-300">
+<div class="card h-80 max-w-80 text-center" in:fade={{ duration: 750, easing: expoIn }}>
+	<header class="card-header h-16 flex-wrap text-sm rounded-t-lg bg-surface-300">
 		<a href="{base}/models/{model._id}">{model.displayName}</a>
 	</header>
 	<section class="p-4">
