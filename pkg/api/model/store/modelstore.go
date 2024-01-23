@@ -20,6 +20,7 @@ type ModelStoreIFace interface {
 	Delete(id string) (err error)
 	List() (models map[string]types.Model, err error)
 	Inspect(id string) (model types.Model, err error)
+	Truncate() (err error)
 }
 
 type ModelStore struct {
