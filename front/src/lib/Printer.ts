@@ -1,7 +1,7 @@
 import { writable } from 'svelte/store';
 import { _apiUrl } from '$lib/Utils';
 
-export interface Printer {
+export type Printer = {
 	_id: string;
 	_rev: string;
 	printerName: string;
@@ -15,57 +15,57 @@ export interface Printer {
 	autoConnect: boolean;
 }
 
-export interface PrinterLocation {
+export type PrinterLocation = {
 	name: string;
 }
 
-export interface PrinterType {
+export type PrinterType = {
 	Make: string;
 	Model: string;
 	Version: string;
 }
 
-export interface PrinterStatus {
-	sd: {
-		ready: boolean;
+export type PrinterStatus = {
+	sd?: {
+		ready?: boolean;
 	};
-	state: {
-		error: string;
-		flags: {
-			cancelling: boolean;
-			closedOrError: boolean;
-			error: boolean;
-			finishing: boolean;
-			operational: boolean;
-			paused: boolean;
-			pausing: boolean;
-			printing: boolean;
-			ready: boolean;
-			resuming: boolean;
-			sdReady: boolean;
+	state?: {
+		error?: string;
+		flags?: {
+			cancelling?: boolean;
+			closedOrError?: boolean;
+			error?: boolean;
+			finishing?: boolean;
+			operational?: boolean;
+			paused?: boolean;
+			pausing?: boolean;
+			printing?: boolean;
+			ready?: boolean;
+			resuming?: boolean;
+			sdReady?: boolean;
 		};
-		text: string;
+		text?: string;
 	};
-	temperature: {
-		A: {
-			actual: number;
-			offset: number;
-			target: number;
+	temperature?: {
+		A?: {
+			actual?: number;
+			offset?: number;
+			target?: number;
 		};
-		P: {
-			actual: number;
-			offset: number;
-			target: number;
+		P?: {
+			actual?: number;
+			offset?: number;
+			target?: number;
 		};
-		bed: {
-			actual: number;
-			offset: number;
-			target: number;
+		bed?: {
+			actual?: number;
+			offset?: number;
+			target?: number;
 		};
-		tool0: {
-			actual: number;
-			offset: number;
-			target: number;
+		tool0?: {
+			actual?: number;
+			offset?: number;
+			target?: number;
 		};
 	};
 }
@@ -94,12 +94,10 @@ export const Connect = async (printer: Printer): Promise<boolean> => {
 	}
 };
 
-export const CheckPrinterStatus = async function (
-	printer: Printer
-): Promise<{ online: string; printerStatus: PrinterStatus; err: Response }> {
+export const CheckPrinterStatus = async function (printer: Printer): Promise<{ online:string, printerStatus:PrinterStatus, err:Error }>{
 	let printerStatus: PrinterStatus;
 	let online: string;
-	let err: Response;
+	let err: Error
 	try {
 		const res: Response = await fetch(`${printer.url}/api/printer`, {
 			headers: {
@@ -107,9 +105,6 @@ export const CheckPrinterStatus = async function (
 			}
 		});
 		if (!res.ok) {
-			console.log(`error: ${res.status}`);
-			console.log(res);
-			err = res;
 			if (res.status == 403) {
 				online = 'FORBIDDEN';
 			} else {
@@ -129,9 +124,9 @@ export const CheckPrinterStatus = async function (
 			printerStatus = await res.json();
 		}
 	} catch (error) {
-		console.log(error);
 		if (error.message === 'Failed to fetch') {
 			online = 'OFFLINE';
+			printerStatus = {state: {text: "Unknown"}, temperature: {bed: {actual: 0}, tool0: {actual: 1.0}, A: {actual:0}}}
 			err = error;
 		}
 	}

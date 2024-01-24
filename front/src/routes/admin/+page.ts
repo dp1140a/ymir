@@ -1,6 +1,7 @@
 import { _apiUrl } from '$lib/Utils';
 import type {PageLoad} from './$types'
 import type { Model } from '$lib/Model';
+import type {Printer} from '$lib/Printer';
 
 export const load:PageLoad = async ({fetch}) => {
 	try{
@@ -20,7 +21,7 @@ export const load:PageLoad = async ({fetch}) => {
 		const priJSON = await printersRes.json()
 
 		const models: Map<string, Model> = new Map<string, Model>(Object.entries(modJSON));
-		const printers: Map<string, string> = new Map<string, string>(Object.entries(priJSON));
+		const printers: Map<string, Printer> = new Map<string, Printer>(Object.entries(priJSON));
 
 		return { models, printers };
 	} catch (err) {
