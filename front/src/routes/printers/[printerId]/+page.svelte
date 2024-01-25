@@ -535,6 +535,7 @@
 	{/if}
 	<hr class="my-6 !border-t-2" />
 	<div class=" h2 text-center">Printer Files</div>
+	<div class="text-center">This looks for files on the Prusa printer that are local (not on the sdcard) and in a folder named "ymir" .</div>
 	<hr class="my-6 !border-t-2" />
 	<div class="m-auto w-2/3">
 		{#await GetPrinterFiles(printer)}
@@ -548,11 +549,11 @@
 						</div>
 						<div class="basis-9/12">
 							<div class="">
-								{file.name}
+								{file.display}
 							</div>
 							{#if 'gcodeAnalysis' in file}
 								<div class="attributes flex flex-row">
-									<div class="basis-1/4">
+									<div class="basis-1/3">
 										<i class="icon iconfont-layer-height" /><!---->
 										<div>
 											W:{file.gcodeAnalysis.dimensions.width} x L:{file.gcodeAnalysis.dimensions
