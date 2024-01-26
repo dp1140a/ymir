@@ -75,7 +75,7 @@ build: tidy fmt
 
 ## dist: Creates a distribution
 .PHONY: dist
-dist: clean reports build
+dist: clean reports front build
 	cd "$(DIST_DIR)"; for dir in ./**; do \
 		#cp $(PKG_DIR)/config.toml $$dir; \
 		#cp -r $(PKG_DIR)/etc $$dir; \
