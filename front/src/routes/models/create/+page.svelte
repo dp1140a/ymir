@@ -3,12 +3,13 @@
 	import { InputChip } from '@skeletonlabs/skeleton';
 	import {getModalStore } from '@skeletonlabs/skeleton';
 	import type { ModalSettings} from '@skeletonlabs/skeleton';
+	import { popup } from '@skeletonlabs/skeleton';
 	import FilePond, { registerPlugin } from 'svelte-filepond'; //https://pqina.nl/filepond/docs/
 	import FilePondPluginImagePreview from 'filepond-plugin-image-preview';
 	import 'filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css';
 	import FilePondPluginFileMetadata from 'filepond-plugin-file-metadata';
-	import CKEditor from '$lib/Ckeditor.svelte';
-	import Editor from 'ckeditor5-custom-build/build/ckeditor'; // https://github.com/techlab23/ckeditor5-svelte/blob/master/src/Ckeditor.svelte
+	import Markdown from 'svelte-exmarkdown';
+	import { gfmPlugin } from 'svelte-exmarkdown/gfm';
 	import { _apiUrl } from '$lib/Utils';
 
 	const modalStore = getModalStore();
@@ -19,10 +20,6 @@
 		errors: Record<string, string>;
 	};
 
-	//export let data;
-
-	// used in the template
-	//let form: Data;
 	// Register the plugin
 	registerPlugin(FilePondPluginFileMetadata, FilePondPluginImagePreview);
 
@@ -168,40 +165,79 @@
 	}
 
 	//Editor
-	// Setting up editor prop to be sent to wrapper component
-	let editor = Editor;
-	//let editor = null;
-	// Reference to initialised editor instance
-
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	let editorInstance = null;
-
 	// Setting up any initial data for the editor
-	let editorData = 'write description here';
+	let md = `
+	# H1
+## H2
+### H3
+#### H4
+**bold**
 
-	// If needed, custom editor config can be passed through to the component
-	// Uncomment the custom editor config if you need to customise the editor.
-	// Note: If you don't pass toolbar object then Document editor will use default set of toolbar items.
-	/**
-	 * ['selectAll', 'undo', 'redo', 'alignment:left', 'alignment:right', 'alignment:center', 'alignment:justify', 'alignment', 'fontSize',
-	 * 'fontFamily', 'fontColor', 'fontBackgroundColor', 'bold', 'italic', 'strikethrough', 'underline', 'blockQuote', 'link', 'ckfinder',
-	 * 'uploadImage', 'imageUpload', 'heading', 'imageTextAlternative', 'toggleImageCaption', 'resizeImage:original', 'resizeImage:25',
-	 * 'resizeImage:50', 'resizeImage:75', 'resizeImage', 'imageResize', 'imageStyle:inline', 'imageStyle:alignLeft', 'imageStyle:alignRight',
-	 * 'imageStyle:alignCenter', 'imageStyle:alignBlockLeft', 'imageStyle:alignBlockRight', 'imageStyle:block', 'imageStyle:side',
-	 * 'imageStyle:wrapText', 'imageStyle:breakText', 'indent', 'outdent', 'numberedList', 'bulletedList', 'mediaEmbed', 'insertTable',
-	 * 'tableColumn', 'tableRow', 'mergeTableCells']
-	 *
-	 */
-	//let editorConfig = {};
+_italic_
 
-	function onReady({ detail: editor }) {
-		// Insert the toolbar before the editable area.
-		//console.log(Array.from(editor.ui.componentFactory.names()))
-		editorInstance = editor;
+~~strikethrough~~
 
-		editor.ui
-			.getEditableElement()
-			.parentElement.insertBefore(editor.ui.view.toolbar.element, editor.ui.getEditableElement());
+1. First ol item
+2. Another ol item
+
+* First ul Item
+* Second ul item
+
+[I'm an inline-style link](https://www.google.com)
+![Image](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Image")
+
+\`\`\`javascript
+var s = "JavaScript syntax highlighting";
+alert(s);
+\`\`\`
+
+\`\`\`json
+{
+  "object": {
+  "string": "hello
+}
+}
+\`\`\`
+sometext
+
+\`\`\`
+No language indicated, so no syntax highlighting.
+But let's throw in a <b>tag</b>.
+\`\`\`
+
+| Tables        | Are           | Cool  |
+| ------------- |:-------------:| -----:|
+| col 3 is      | right-aligned | $1600 |
+| col 2 is      | centered      |   $12 |
+| zebra stripes | are neat      |    $1 |
+---
+
+> Blockquotes are very handy in email to emulate reply text.
+	`;
+	const plugins = [gfmPlugin()];
+
+	let mdCodeVisible = true
+	let mdPreviewVisible = true
+	let currentMDBtn = "both"
+
+	const showMarkdown = (which) => {
+		switch (which) {
+			case "code":
+				mdCodeVisible = true;
+				mdPreviewVisible = false;
+				break;
+			case "both":
+				mdCodeVisible = true;
+				mdPreviewVisible = true;
+				break;
+			case "preview":
+				mdCodeVisible = false;
+				mdPreviewVisible = true;
+				break;
+			default:
+				break
+		}
+		currentMDBtn = which
 	}
 </script>
 
@@ -267,7 +303,57 @@
 			<label class="label mb-8" for="">
 				<span>Full Description</span>
 				<div>
-					<CKEditor name="description" bind:editor on:ready={onReady} bind:value={editorData} />
+					<div class="">
+						<div class="card p-1 variant-filled-surface" data-popup="editor">
+							<p>Markdown Editor</p>
+							<div class="arrow variant-filled-surface" />
+						</div>
+						<button type="button"
+										class="btn btn-sm {currentMDBtn === 'code' ? 'variant-ghost-primary' : 'variant-filled-primary'} [&>*]:pointer-events-none"
+										use:popup={{ event: 'hover', target: 'editor', placement: 'top' }}
+										style="padding: .3em;"
+										on:click={() => showMarkdown("code")}>
+							<span class="fa-stack ">
+							<i class="fa fa-code fa-stack-1x invert"></i>
+						</span>
+						</button>
+						<div class="card p-1 variant-filled-surface" data-popup="both">
+							<p>Editor and Preview</p>
+							<div class="arrow variant-filled-surface" />
+						</div>
+						<button type="button"
+										class="btn btn-sm {currentMDBtn === 'both' ? 'variant-ghost-secondary' : 'variant-filled-secondary'} [&>*]:pointer-events-none"
+										use:popup={{ event: 'hover', target: 'both', placement: 'top' }}
+										style="padding: .3em;"
+										on:click={() => showMarkdown("both")}>
+							<span class="fa-stack ">
+							<i class="fa-light fa-window-maximize fa-stack-2x invert"></i>
+							<i class="fa fa-code fa-stack-1x invert"></i>
+						</span>
+						</button>
+						<div class="card p-1 variant-filled-surface" data-popup="preview">
+							<p>Preview</p>
+							<div class="arrow variant-filled-surface" />
+						</div>
+						<button type="button"
+										class="btn btn-sm {currentMDBtn === 'preview' ? 'variant-ghost-tertiary' : 'variant-filled-tertiary'} [&>*]:pointer-events-none"
+										use:popup={{ event: 'hover', target: 'preview', placement: 'top' }}
+										style="padding: .3em;"
+										on:click={() => showMarkdown("preview")}>
+							<span class="fa-stack ">
+							<i class="fa-light fa-window-maximize fa-stack-2x invert"></i>
+						</span>
+						</button>
+					</div>
+					{#if (mdCodeVisible)}
+					<textarea class="w-full h-64" bind:value={md} id="mdCode"/>
+						{/if}
+					{#if (mdPreviewVisible)}
+					<div class="ignore-css" id="md-preview">
+						<Markdown {md} {plugins}/>
+					</div>
+						{/if}
+
 				</div>
 			</label>
 			<label class="label" for="">
@@ -383,4 +469,7 @@
 	.textarea {
 		background-color: rgb(255 255 255 / var(--tw-bg-opacity)) !important;
 	}
+
+
+
 </style>
