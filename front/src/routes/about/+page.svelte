@@ -1,16 +1,16 @@
 <!-- src/routes/+page.svelte -->
 <script lang="ts">
 	import { _apiUrl } from '$lib/Utils';
-	import type { Version} from '$lib/Version';
+	import type { Version } from '$lib/Version';
 
 	const getVersion = async () => {
 		const url = _apiUrl('/v1/version');
-		let version:Version = {
-			"AppName": "",
-			"Version": "dev",
-			"Branch": "",
-			"Commit": "",
-			"BuildTime": ""
+		let version: Version = {
+			AppName: '',
+			Version: 'dev',
+			Branch: '',
+			Commit: '',
+			BuildTime: ''
 		};
 		try {
 			const res = await fetch(url);
@@ -23,7 +23,7 @@
 		} catch (err) {
 			console.log(err);
 		}
-		console.log(version)
+		console.log(version);
 		return version.Version;
 	};
 </script>

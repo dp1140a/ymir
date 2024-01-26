@@ -76,9 +76,9 @@
 			{/each}
 		{:else}
 			<div class="grid gap-8 md:grid-cols-4 lg:grid-cols-6">
-			{#each models as model}
+				{#each models as model}
 					<ModelCard {model} />
-			{/each}
+				{/each}
 			</div>
 		{/if}
 	</div>

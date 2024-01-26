@@ -160,14 +160,14 @@
 		</aside>
 	{/if}
 </div>
-	<div
-		contenteditable="true"
-		bind:textContent={model.displayName}
-		on:input={needsSave}
-		class="editable mt-2 h1"
-	>
+<div
+	contenteditable="true"
+	bind:textContent={model.displayName}
+	on:input={needsSave}
+	class="editable h1 mt-2"
+>
 	{model.displayName}
-	</div>
+</div>
 <hr class="my-4 !border-t-2" />
 <div class="grid grid-flow-col gap-8">
 	<div class="max-w-2xl">

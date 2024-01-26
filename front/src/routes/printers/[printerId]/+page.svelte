@@ -535,7 +535,10 @@
 	{/if}
 	<hr class="my-6 !border-t-2" />
 	<div class=" h2 text-center">Printer Files</div>
-	<div class="text-center">This looks for files on the Prusa printer that are local (not on the sdcard) and in a folder named "ymir" .</div>
+	<div class="text-center">
+		This looks for files on the Prusa printer that are local (not on the sdcard) and in a folder
+		named "ymir" .
+	</div>
 	<hr class="my-6 !border-t-2" />
 	<div class="m-auto w-2/3">
 		{#await GetPrinterFiles(printer)}

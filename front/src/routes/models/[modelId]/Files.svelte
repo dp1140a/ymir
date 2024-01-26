@@ -194,7 +194,7 @@
 		</div>
 		{#await getGCodeMetaData(printFiles)}
 			Getting Print File Details...
-		<!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -->
+			<!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -->
 		{:then _}
 			{#if printFiles.length > 0}
 				{#each printFiles as file, i}
@@ -313,7 +313,7 @@
 				<div class="file-item-container flex justify-start px-2 py-6">
 					{#if file.thumbnail}
 						<div class="pr-4">
-							<a href="{'#'}" on:click={() => showModelSTL(file.path)}>
+							<a href={'#'} on:click={() => showModelSTL(file.path)}>
 								<img
 									src={file.thumbnail}
 									height="90"
@@ -418,7 +418,7 @@
 		margin-bottom: 0;
 	}
 
-/**
+	/**
 	input[type='file'] {
 		display: none;
 	}

@@ -9,7 +9,7 @@ export const load = async ({ fetch }) => {
 		throw `Error while fetching data from ${url} (${res.status} ${res.statusText}).`;
 	}
 	const modJSON = await res.json();
-	console.log(modJSON)
+	console.log(modJSON);
 	/*
 	Due to the change on the backend we now get a map[string]Model.
 	We can change that here to a []Model or modify the page to work with

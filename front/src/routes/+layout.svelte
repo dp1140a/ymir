@@ -48,25 +48,15 @@
 					class="bg-surface-100-800-token w-full"
 				>
 					<!--selected={tabsBottomNav === '/models'}-->
-					<TabAnchor
-						href="/models"
-						selected={$page.url.pathname.includes('/models')}
-					>
+					<TabAnchor href="/models" selected={$page.url.pathname.includes('/models')}>
 						<svelte:fragment slot="lead"><i class="fa-solid fa-cubes" /></svelte:fragment>
 						Models
 					</TabAnchor>
-					<TabAnchor
-						href="/printers"
-						selected={$page.url.pathname.includes('/printers')}
-
-					>
+					<TabAnchor href="/printers" selected={$page.url.pathname.includes('/printers')}>
 						<svelte:fragment slot="lead"><i class="fa-solid fa-print" /></svelte:fragment>
 						Printer
 					</TabAnchor>
-					<TabAnchor
-						href="/docs"
-						selected={$page.url.pathname.includes('/docs')}
-					>
+					<TabAnchor href="/docs" selected={$page.url.pathname.includes('/docs')}>
 						<svelte:fragment slot="lead"><i class="fa-solid fa-book" /></svelte:fragment>
 						Docs
 					</TabAnchor>

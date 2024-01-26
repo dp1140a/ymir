@@ -5,7 +5,7 @@
 	export let geometry;
 	let w;
 	let h;
-	let modalStore = getModalStore()
+	let modalStore = getModalStore();
 	onMount(() => {
 		//console.log(w + " x " + h)
 	});

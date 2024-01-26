@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { InputChip } from '@skeletonlabs/skeleton';
-	import {getModalStore } from '@skeletonlabs/skeleton';
-	import type { ModalSettings} from '@skeletonlabs/skeleton';
+	import { getModalStore } from '@skeletonlabs/skeleton';
+	import type { ModalSettings } from '@skeletonlabs/skeleton';
 	import { popup } from '@skeletonlabs/skeleton';
 	import FilePond, { registerPlugin } from 'svelte-filepond'; //https://pqina.nl/filepond/docs/
 	import FilePondPluginImagePreview from 'filepond-plugin-image-preview';
@@ -216,29 +216,29 @@ But let's throw in a <b>tag</b>.
 	`;
 	const plugins = [gfmPlugin()];
 
-	let mdCodeVisible = true
-	let mdPreviewVisible = true
-	let currentMDBtn = "both"
+	let mdCodeVisible = true;
+	let mdPreviewVisible = true;
+	let currentMDBtn = 'both';
 
 	const showMarkdown = (which) => {
 		switch (which) {
-			case "code":
+			case 'code':
 				mdCodeVisible = true;
 				mdPreviewVisible = false;
 				break;
-			case "both":
+			case 'both':
 				mdCodeVisible = true;
 				mdPreviewVisible = true;
 				break;
-			case "preview":
+			case 'preview':
 				mdCodeVisible = false;
 				mdPreviewVisible = true;
 				break;
 			default:
-				break
+				break;
 		}
-		currentMDBtn = which
-	}
+		currentMDBtn = which;
+	};
 </script>
 
 <div class="container mx-auto px-4">
@@ -304,56 +304,67 @@ But let's throw in a <b>tag</b>.
 				<span>Full Description</span>
 				<div>
 					<div class="">
-						<div class="card p-1 variant-filled-surface" data-popup="editor">
+						<div class="card variant-filled-surface p-1" data-popup="editor">
 							<p>Markdown Editor</p>
-							<div class="arrow variant-filled-surface" />
+							<div class="variant-filled-surface arrow" />
 						</div>
-						<button type="button"
-										class="btn btn-sm {currentMDBtn === 'code' ? 'variant-ghost-primary' : 'variant-filled-primary'} [&>*]:pointer-events-none"
-										use:popup={{ event: 'hover', target: 'editor', placement: 'top' }}
-										style="padding: .3em;"
-										on:click={() => showMarkdown("code")}>
-							<span class="fa-stack ">
-							<i class="fa fa-code fa-stack-1x invert"></i>
-						</span>
+						<button
+							type="button"
+							class="btn btn-sm {currentMDBtn === 'code'
+								? 'variant-ghost-primary'
+								: 'variant-filled-primary'} [&>*]:pointer-events-none"
+							use:popup={{ event: 'hover', target: 'editor', placement: 'top' }}
+							style="padding: .3em;"
+							on:click={() => showMarkdown('code')}
+						>
+							<span class="fa-stack">
+								<i class="fa fa-code fa-stack-1x invert"></i>
+							</span>
 						</button>
-						<div class="card p-1 variant-filled-surface" data-popup="both">
+						<div class="card variant-filled-surface p-1" data-popup="both">
 							<p>Editor and Preview</p>
-							<div class="arrow variant-filled-surface" />
+							<div class="variant-filled-surface arrow" />
 						</div>
-						<button type="button"
-										class="btn btn-sm {currentMDBtn === 'both' ? 'variant-ghost-secondary' : 'variant-filled-secondary'} [&>*]:pointer-events-none"
-										use:popup={{ event: 'hover', target: 'both', placement: 'top' }}
-										style="padding: .3em;"
-										on:click={() => showMarkdown("both")}>
-							<span class="fa-stack ">
-							<i class="fa-light fa-window-maximize fa-stack-2x invert"></i>
-							<i class="fa fa-code fa-stack-1x invert"></i>
-						</span>
+						<button
+							type="button"
+							class="btn btn-sm {currentMDBtn === 'both'
+								? 'variant-ghost-secondary'
+								: 'variant-filled-secondary'} [&>*]:pointer-events-none"
+							use:popup={{ event: 'hover', target: 'both', placement: 'top' }}
+							style="padding: .3em;"
+							on:click={() => showMarkdown('both')}
+						>
+							<span class="fa-stack">
+								<i class="fa-light fa-window-maximize fa-stack-2x invert"></i>
+								<i class="fa fa-code fa-stack-1x invert"></i>
+							</span>
 						</button>
-						<div class="card p-1 variant-filled-surface" data-popup="preview">
+						<div class="card variant-filled-surface p-1" data-popup="preview">
 							<p>Preview</p>
-							<div class="arrow variant-filled-surface" />
+							<div class="variant-filled-surface arrow" />
 						</div>
-						<button type="button"
-										class="btn btn-sm {currentMDBtn === 'preview' ? 'variant-ghost-tertiary' : 'variant-filled-tertiary'} [&>*]:pointer-events-none"
-										use:popup={{ event: 'hover', target: 'preview', placement: 'top' }}
-										style="padding: .3em;"
-										on:click={() => showMarkdown("preview")}>
-							<span class="fa-stack ">
-							<i class="fa-light fa-window-maximize fa-stack-2x invert"></i>
-						</span>
+						<button
+							type="button"
+							class="btn btn-sm {currentMDBtn === 'preview'
+								? 'variant-ghost-tertiary'
+								: 'variant-filled-tertiary'} [&>*]:pointer-events-none"
+							use:popup={{ event: 'hover', target: 'preview', placement: 'top' }}
+							style="padding: .3em;"
+							on:click={() => showMarkdown('preview')}
+						>
+							<span class="fa-stack">
+								<i class="fa-light fa-window-maximize fa-stack-2x invert"></i>
+							</span>
 						</button>
 					</div>
-					{#if (mdCodeVisible)}
-					<textarea class="w-full h-64" bind:value={md} id="mdCode"/>
-						{/if}
-					{#if (mdPreviewVisible)}
-					<div class="ignore-css" id="md-preview">
-						<Markdown {md} {plugins}/>
-					</div>
-						{/if}
-
+					{#if mdCodeVisible}
+						<textarea class="h-64 w-full" bind:value={md} id="mdCode" />
+					{/if}
+					{#if mdPreviewVisible}
+						<div class="ignore-css" id="md-preview">
+							<Markdown {md} {plugins} />
+						</div>
+					{/if}
 				</div>
 			</label>
 			<label class="label" for="">
@@ -469,7 +480,4 @@ But let's throw in a <b>tag</b>.
 	.textarea {
 		background-color: rgb(255 255 255 / var(--tw-bg-opacity)) !important;
 	}
-
-
-
 </style>

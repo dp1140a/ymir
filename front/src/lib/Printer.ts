@@ -13,17 +13,17 @@ export type Printer = {
 	dateAdded: string;
 	tags: string[];
 	autoConnect: boolean;
-}
+};
 
 export type PrinterLocation = {
 	name: string;
-}
+};
 
 export type PrinterType = {
 	Make: string;
 	Model: string;
 	Version: string;
-}
+};
 
 export type PrinterStatus = {
 	sd?: {
@@ -68,7 +68,7 @@ export type PrinterStatus = {
 			target?: number;
 		};
 	};
-}
+};
 
 export const SelectedPrinter = writable<Printer>();
 
@@ -94,10 +94,12 @@ export const Connect = async (printer: Printer): Promise<boolean> => {
 	}
 };
 
-export const CheckPrinterStatus = async function (printer: Printer): Promise<{ online:string, printerStatus:PrinterStatus, err:Error }>{
+export const CheckPrinterStatus = async function (
+	printer: Printer
+): Promise<{ online: string; printerStatus: PrinterStatus; err: Error }> {
 	let printerStatus: PrinterStatus;
 	let online: string;
-	let err: Error
+	let err: Error;
 	try {
 		const res: Response = await fetch(`${printer.url}/api/printer`, {
 			headers: {
@@ -126,7 +128,10 @@ export const CheckPrinterStatus = async function (printer: Printer): Promise<{ o
 	} catch (error) {
 		if (error.message === 'Failed to fetch') {
 			online = 'OFFLINE';
-			printerStatus = {state: {text: "Unknown"}, temperature: {bed: {actual: 0}, tool0: {actual: 1.0}, A: {actual:0}}}
+			printerStatus = {
+				state: { text: 'Unknown' },
+				temperature: { bed: { actual: 0 }, tool0: { actual: 1.0 }, A: { actual: 0 } }
+			};
 			err = error;
 		}
 	}

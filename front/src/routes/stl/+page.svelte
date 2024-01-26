@@ -1,5 +1,5 @@
 <script>
-	import { T, Canvas} from '@threlte/core';
+	import { T, Canvas } from '@threlte/core';
 
 	import { OrbitControls } from '@threlte/extras';
 
