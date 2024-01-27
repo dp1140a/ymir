@@ -1,4 +1,4 @@
-import type { Printer } from "$lib/Printer";
+import type { Printer } from '$lib/Printer';
 
 export interface JobInformation {
 	job: {
@@ -34,9 +34,9 @@ export interface JobInformation {
 export const GetPrinterJob = async (printer: Printer) => {
 	let jobInfo: JobInformation;
 	try {
-		let res: Response = await fetch(`${printer.url}/api/job`, {
+		const res: Response = await fetch(`${printer.url}/api/job`, {
 			headers: {
-				'X-Api-Key': printer.apiKey,
+				'X-Api-Key': printer.apiKey
 			}
 		});
 		if (!res.ok) {
@@ -48,4 +48,3 @@ export const GetPrinterJob = async (printer: Printer) => {
 	}
 	return jobInfo;
 };
-

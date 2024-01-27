@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { scale, fade } from 'svelte/transition';
+	import { fade } from 'svelte/transition';
 	import { expoIn } from 'svelte/easing';
 	import { base } from '$app/paths';
 	import { _apiUrl } from './Utils';
-	import type { Model } from "$lib/Model"
+	import type { Model } from '$lib/Model';
 
-	export let model:Model
+	export let model: Model;
 
 	let img: HTMLImageElement;
 
@@ -17,22 +17,22 @@
 	}
 </script>
 
-<div class="card text-center w-80 h-96" in:fade={{ duration: 750, easing: expoIn }}>
-	<header class="card-header h-16 bg-surface-300 rounded-t-lg flex-wrap">
+<div class="card h-80 max-w-80 text-center" in:fade={{ duration: 750, easing: expoIn }}>
+	<header class="card-header h-16 flex-wrap rounded-t-lg bg-surface-300 text-sm">
 		<a href="{base}/models/{model._id}">{model.displayName}</a>
 	</header>
 	<section class="p-4">
 		<div>
 			<a href="{base}/models/{model._id}">
-				{#if (model.images.length > 0)}
-				<img
-					class="img-div"
-					src={_apiUrl('/v1/model/image?path=').concat(model.basePath,'/',model.images[0].path)}
-					on:load={imageLoaded}
-					bind:this={img}
-					alt="model"
-				/>
-					{:else }
+				{#if model.images.length > 0}
+					<img
+						class="img-div"
+						src={_apiUrl('/v1/model/image?path=').concat(model.basePath, '/', model.images[0].path)}
+						on:load={imageLoaded}
+						bind:this={img}
+						alt="model"
+					/>
+				{:else}
 					<img
 						class="img-div"
 						src="/3d-model-icon.png"
@@ -40,18 +40,18 @@
 						bind:this={img}
 						alt="model icon"
 					/>
-					{/if}
-					</a>
+				{/if}
+			</a>
 		</div>
 		<div class="mt-2">
-			{#if model.summary != undefined }
+			{#if model.summary != undefined}
 				{model.summary}
 			{/if}
 		</div>
 	</section>
 	<footer class="card-footer">
-		{#each model.tags as tag, i}
-			<span class="chip variant-ghost-surface mx-1">{tag}</span>
+		{#each model.tags as tag}
+			<span class="variant-ghost-surface chip mx-1">{tag}</span>
 		{/each}
 	</footer>
 </div>

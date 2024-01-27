@@ -20,21 +20,26 @@ type ModelStoreIFace interface {
 	Delete(id string) (err error)
 	List() (models map[string]types.Model, err error)
 	Inspect(id string) (model types.Model, err error)
+	Truncate() (err error)
 }
 
 type ModelStore struct {
 	ModelStoreIFace
 	bucket string
-	ds     *db.BoltDBDataStore
+	ds     db.BoltDBDataStore
 }
 
 func NewModelDataStore() (store ModelStoreIFace) {
 	config := db.NewBoltDBDataStoreConfig()
 	fmt.Println(config.DBFile)
 	d := ModelStore{
-		ds: db.NewBoltDBDatastore(config),
+		ds: *db.NewBoltDBDatastore(config),
 	}
-	createBucketIfNotExists(d.ds)
+	err := createBucketIfNotExists(&d.ds)
+	if err != nil {
+		log.Error("could not create bucket:")
+		return nil
+	}
 	return d
 }
 
@@ -79,7 +84,7 @@ func (ms ModelStore) Truncate() (err error) {
 		return err
 	})
 
-	err = createBucketIfNotExists(ms.ds)
+	err = createBucketIfNotExists(&ms.ds)
 	return
 }
 

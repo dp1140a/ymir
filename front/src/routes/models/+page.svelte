@@ -1,6 +1,6 @@
 <script lang="ts">
 	import ModelCard from '$lib/ModelCard.svelte';
-	import { base } from '$app/paths';
+	import type { Model } from '$lib/Model';
 	export let data;
 
 	const models = data.models;
@@ -14,7 +14,7 @@
 	export let searchTerm = '';
 
 	const searchByTag = () => {
-		filteredModels = models.filter((model: any) => {
+		filteredModels = models.filter((model: Model) => {
 			searchTerm = tagSearch;
 			return model.tags.some((tag) => tag.toLowerCase() === tagSearch.toLowerCase());
 		});
@@ -30,6 +30,7 @@
 		}));
 	};
 </script>
+
 <h1 class="h1 mt-4">Models</h1>
 <span>{models.length} Models</span>
 <div class="flex">
@@ -62,27 +63,26 @@
 			</label>
 		</form>
 	</div>
-	<div class="">
-		<div class="grid lg:grid-cols-6 md:grid-cols-4 gap-8">
-
+	<div class="w-full">
 		{#if (searchTerm !== '' && filteredModels.length === 0) || models.length === 0}
-			No Models Found. Either Create a model or alter your search criteria.
+			<div class="mt-6 text-center">
+				No Models Found. Either Create a model or alter your search criteria.
+			</div>
 		{:else if filteredModels.length > 0}
-
-
-			{#each filteredModels as model, i}
-				<ModelCard {model} />
+			{#each filteredModels as model}
+				<div class="max-width-lg">
+					<ModelCard {model} />
+				</div>
 			{/each}
-
 		{:else}
-			{#each models as model, i}
-				<ModelCard {model} />
-			{/each}
+			<div class="grid gap-8 md:grid-cols-4 lg:grid-cols-6">
+				{#each models as model}
+					<ModelCard {model} />
+				{/each}
+			</div>
 		{/if}
 	</div>
-	</div>
 </div>
-
 
 <style>
 </style>

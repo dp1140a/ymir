@@ -6,7 +6,7 @@
  * Checks for errors on a fetch response.  Throws an error if response not ok
  * @param response
  */
-export const handleError = (response: Response): Promise<any> => {
+export const handleError = (response: Response): Promise<unknown> => {
 	if (!response.ok) {
 		throw Error(response.statusText);
 	}
@@ -37,10 +37,10 @@ export const Basename = (path: string): string => {
 };
 
 export const SecondsPrettyPrint = (totalSeconds: number): string => {
-	let hours: number = Math.floor(totalSeconds / 3600);
+	const hours: number = Math.floor(totalSeconds / 3600);
 	totalSeconds %= 3600;
-	let minutes: number = Math.floor(totalSeconds / 60);
-	let seconds: string = (totalSeconds % 60).toFixed(0);
+	const minutes: number = Math.floor(totalSeconds / 60);
+	const seconds: string = (totalSeconds % 60).toFixed(0);
 
 	return `${hours}H ${minutes}M ${seconds}S`;
 };

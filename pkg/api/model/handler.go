@@ -244,6 +244,7 @@ func (mh ModelHandler) create(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	//@TODO Note:  not sure why this works with the Printerstore but not the ModelStore.
 	_, err = mh.Service.(ModelServiceIface).CreateModel(model)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -307,7 +308,7 @@ GET /model (200, 500) -- get all models
 func (mh ModelHandler) listAll(w http.ResponseWriter, r *http.Request) {
 	models, err := mh.Service.(ModelServiceIface).ListModels()
 	if err != nil {
-		log.Errorf("list all models service error: %v", err)
+		log.Error("list all models service error: ", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -375,7 +376,7 @@ func (mh ModelHandler) exportModelHandler(w http.ResponseWriter, r *http.Request
 	w.Header().Set("Content-Type", "application/zip")
 	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", zipFileName))
 
-	if err := mh.Service.(ModelService).ExportModel(dirPath, w); err != nil {
+	if err := mh.Service.(ModelServiceIface).ExportModel(dirPath, w); err != nil {
 		http.Error(w, fmt.Sprintf("Error zipping directory: %s", err), http.StatusInternalServerError)
 	}
 	w.WriteHeader(http.StatusNoContent)
@@ -420,10 +421,10 @@ func (mh ModelHandler) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	key := ""
 	if basePath != "" {
 		log.Infof("base path: %v", basePath)
-		key, err = mh.Service.(ModelService).UploadFilesExistingModel(file, handler.Filename, basePath)
+		key, err = mh.Service.(ModelServiceIface).UploadFilesExistingModel(file, handler.Filename, basePath)
 
 	} else { // New Model
-		key, err = mh.Service.(ModelService).UploadFilesNewModel(file, handler.Filename)
+		key, err = mh.Service.(ModelServiceIface).UploadFilesNewModel(file, handler.Filename)
 
 	}
 	if err != nil {
@@ -578,7 +579,7 @@ GET /image (200, 500) -- Fetches Model Image
 */
 func (mh ModelHandler) fetchImage(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Query().Get("path")
-	buf, err := mh.Service.(ModelService).FetchModelImage(path)
+	buf, err := mh.Service.(ModelServiceIface).FetchModelImage(path)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -593,7 +594,7 @@ GET /stl (200, 500) -- Fetches Model STL
 */
 func (mh ModelHandler) fetchSTL(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Query().Get("path")
-	buf, err := mh.Service.(ModelService).FetchSTL(path)
+	buf, err := mh.Service.(ModelServiceIface).FetchSTL(path)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -609,7 +610,7 @@ GET /stl/image (200, 500) -- Fetches Model STL Thumbnail
 func (mh ModelHandler) fetchSTLThumbnail(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Query().Get("path")
 	log.Info(path)
-	imgStr, err := mh.Service.(ModelService).FetchSTLThumbnail(path)
+	imgStr, err := mh.Service.(ModelServiceIface).FetchSTLThumbnail(path)
 	if err != nil {
 		log.Error(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -642,7 +643,7 @@ func (mh ModelHandler) addNote(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	err = mh.Service.(ModelService).AddNote(model)
+	err = mh.Service.(ModelServiceIface).AddNote(model)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -660,7 +661,7 @@ GET /gcode (200, 500) -- Fetches Model STL Thumbnail
 */
 func (mh ModelHandler) parseGCode(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Query().Get("path")
-	gcode, err := mh.Service.(ModelService).GetGCodeMetaData(path)
+	gcode, err := mh.Service.(ModelServiceIface).GetGCodeMetaData(path)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

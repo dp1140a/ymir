@@ -9,8 +9,9 @@
 		"skipLibCheck": true,
 		"sourceMap": true,
 		"strict": false,
-		"lib": ["es6", "dom", "es2017"],
-		"noImplicitAny": false
+		"moduleResolution": "bundler"
+		//"lib": ["es6", "dom", "es2017"],
+		//"noImplicitAny": false
 	}
 	// Path aliases are handled by https://kit.svelte.dev/docs/configuration#alias
 	//

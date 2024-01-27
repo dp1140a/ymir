@@ -46,9 +46,9 @@ export const _getSTLThumbnail = async (
 	model: ModelFileType,
 	modelPath: string
 ): Promise<string> => {
-	let thumbnail: string;
-	let url = _apiUrl('/v1/model/stl/image?path=').concat(modelPath, '/', model.path);
-	let res = await fetch(url);
+	//let thumbnail: string;
+	const url = _apiUrl('/v1/model/stl/image?path=').concat(modelPath, '/', model.path);
+	const res = await fetch(url);
 	if (!res.ok) {
 		throw `Error while fetching data from ${url} (${res.status} ${res.statusText}).`;
 	}

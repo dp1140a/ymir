@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -11,25 +12,43 @@ import (
 	"ymir/pkg/db"
 )
 
+var (
+	lock = &sync.Mutex{}
+)
+
+var instance *bolt.DB
+
 type BoltDBDataStore struct {
 	db.Datastore
-	ds     *bolt.DB
-	Config *BoltDBDataStoreConfig
-	stats  bolt.Stats
+	ds    *bolt.DB
+	stats bolt.Stats
 }
 
 func NewBoltDBDatastore(config *BoltDBDataStoreConfig) (datastore *BoltDBDataStore) {
-	b := &BoltDBDataStore{
-		Config: config,
-	}
-	ds, err := bolt.Open(b.Config.DBFile, 0644, &bolt.Options{Timeout: 1 * time.Second})
+	b := &BoltDBDataStore{}
+	err := getInstance(config.DBFile)
 	if err != nil {
-		log.Error("Error opening DB file: ", err.Error())
-		return nil
+		log.Fatal("Could not Open DB")
 	}
-
-	b.ds = ds
+	b.ds = instance
 	return b
+}
+
+func getInstance(dbFile string) error {
+	if instance == nil {
+		lock.Lock()
+		defer lock.Unlock()
+		log.Info("Creating single instance for db ", dbFile)
+		var err error
+		instance, err = bolt.Open(dbFile, 0644, &bolt.Options{Timeout: 1 * time.Second})
+		if err != nil {
+			log.Fatal(err)
+			return err
+		}
+	} else {
+		log.Info("returning instance: ", instance)
+	}
+	return nil
 }
 
 /*

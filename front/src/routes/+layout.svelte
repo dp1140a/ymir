@@ -1,41 +1,24 @@
 <script lang="ts">
 	import { base } from '$app/paths';
-	import {page} from "$app/stores";
-
-	// The ordering of these imports is critical to your app working properly
-	import '../theme.postcss';
-	import '@skeletonlabs/skeleton/styles/skeleton.css';
+	import { page } from '$app/stores';
+	import { initializeStores } from '@skeletonlabs/skeleton';
 	import { TabGroup, TabAnchor } from '@skeletonlabs/skeleton';
 	import '../app.postcss';
 	import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom';
 	import { Modal, storePopup } from '@skeletonlabs/skeleton';
 	import { AppShell, AppBar } from '@skeletonlabs/skeleton';
 	import { popup } from '@skeletonlabs/skeleton';
-	import type { PopupSettings } from '@skeletonlabs/skeleton';
+
+	initializeStores();
 
 	storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow });
-	let comboboxValue: string;
 
-	function handleClick() {
-		console.log(comboboxValue);
-	}
+	//let tabsBottomNav = '/models';
 
-	const popupCombobox: PopupSettings = {
-		event: 'focus-click',
-		target: 'popupCombobox',
-		placement: 'bottom',
-		closeQuery: '.listbox-item'
-	};
-
-	//export let data
-
-	let tabsBottomNav = '/models';
-
-	console.log("DEV: " + import.meta.env.DEV)
-	console.log("PROD: " + import.meta.env.PROD)
-	console.log("BASE URL: " + import.meta.env.BASE_URL)
-	console.log("MODE: " + import.meta.env.MODE)
-
+	console.log('DEV: ' + import.meta.env.DEV);
+	console.log('PROD: ' + import.meta.env.PROD);
+	console.log('BASE URL: ' + import.meta.env.BASE_URL);
+	console.log('MODE: ' + import.meta.env.MODE);
 </script>
 
 <Modal />
@@ -50,8 +33,8 @@
 			padding="px-4 pt-4"
 		>
 			<svelte:fragment slot="lead">
-				<div class="flex justify-right">
-					<h1 class="h1 gradient">ᛃᛗᛁᚱ</h1>
+				<div class="justify-right flex">
+					<a href="/" class="logo h1">ᛃᛗᛁᚱ</a>
 				</div>
 			</svelte:fragment>
 			<div>
@@ -65,34 +48,22 @@
 					class="bg-surface-100-800-token w-full"
 				>
 					<!--selected={tabsBottomNav === '/models'}-->
-					<TabAnchor
-						href="/models"
-						selected={$page.url.pathname.includes('/models')}
-						on:click={() => (tabsBottomNav = '/models')}
-					>
+					<TabAnchor href="/models" selected={$page.url.pathname.includes('/models')}>
 						<svelte:fragment slot="lead"><i class="fa-solid fa-cubes" /></svelte:fragment>
 						Models
 					</TabAnchor>
-					<TabAnchor
-						href="/printers"
-						selected={$page.url.pathname.includes('/printers')}
-						on:click={() => (tabsBottomNav = '/printers')}
-					>
+					<TabAnchor href="/printers" selected={$page.url.pathname.includes('/printers')}>
 						<svelte:fragment slot="lead"><i class="fa-solid fa-print" /></svelte:fragment>
 						Printer
 					</TabAnchor>
-					<TabAnchor
-						href="/docs"
-						selected={$page.url.pathname.includes('/docs')}
-						on:click={() => (tabsBottomNav = '/docs')}
-					>
+					<TabAnchor href="/docs" selected={$page.url.pathname.includes('/docs')}>
 						<svelte:fragment slot="lead"><i class="fa-solid fa-book" /></svelte:fragment>
 						Docs
 					</TabAnchor>
 				</TabGroup>
 			</div>
 			<svelte:fragment slot="trail">
-				<a class="btn btn-sm variant-filled-error" href="/models/create"> + New Model </a>
+				<a class="variant-filled-error btn btn-sm" href="/models/create"> + New Model </a>
 				<button
 					class="btn hover:variant-soft-error"
 					use:popup={{ event: 'click', target: 'features' }}
@@ -101,9 +72,14 @@
 					<i class="fa-solid fa-caret-down opacity-50" />
 				</button>
 				<!-- popup -->
-				<div class="card p-4 w-60 shadow-xl" data-popup="features">
+				<div class="card w-60 p-4 shadow-xl" data-popup="features">
 					<nav class="list-nav">
 						<ul>
+							<li class="hover:variant-ghost-error">
+								<a href="{base}/admin">
+									<span>Admin</span>
+								</a>
+							</li>
 							<li class="hover:variant-ghost-error">
 								<a href="{base}/docs">
 									<span>Docs</span>
@@ -121,13 +97,13 @@
 							</li>
 						</ul>
 					</nav>
-					<div class="arrow bg-surface-100-800-token" />
+					<div class="bg-surface-100-800-token arrow" />
 				</div>
 			</svelte:fragment>
 		</AppBar>
 	</svelte:fragment>
 	<!-- Page Route Content -->
-	<div id="content" class="w-full mx-auto px-8 pt-4">
+	<div id="content" class="mx-auto w-full px-8 pt-4">
 		<slot />
 	</div>
 </AppShell>
@@ -139,24 +115,4 @@ https://codepen.io/atnyman/pen/nmEyjK
 https://codepen.io/mandymichael/pen/wpYQKx
 -->
 <style lang="scss">
-	h1.gradient {
-		background-clip: text;
-		background-image: linear-gradient(
-			to top,
-			#511d11,
-			#632415,
-			#7c2d1a,
-			#953620,
-			#a53c23,
-			#c07765,
-			#dbb1a7
-		);
-		color: #511d11;
-		font-weight: 400;
-		letter-spacing: calc(1em / 160);
-		/*padding: calc(calc(1em / 16));*/
-		-webkit-text-stroke-color: transparent;
-		-webkit-text-stroke-width: calc(1em / 12);
-		font-size: 64px;
-	}
 </style>

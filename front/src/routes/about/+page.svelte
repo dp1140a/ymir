@@ -1,28 +1,42 @@
 <!-- src/routes/+page.svelte -->
 <script lang="ts">
-	import { Avatar } from '@skeletonlabs/skeleton';
-	import { base } from '$app/paths';
-	import { goto } from '$app/navigation';
-	import {_apiUrl} from "../+layout";
+	import { _apiUrl } from '$lib/Utils';
+	import type { Version } from '$lib/Version';
 
 	const getVersion = async () => {
 		const url = _apiUrl('/v1/version');
-		const res = await fetch(url);
-		//console.log(url);
-		if (!res.ok) {
-			throw `Error while fetching data from ${url} (${res.status} ${res.statusText}).`;
+		let version: Version = {
+			AppName: '',
+			Version: 'dev',
+			Branch: '',
+			Commit: '',
+			BuildTime: ''
+		};
+		try {
+			const res = await fetch(url);
+			if (!res.ok) {
+				console.log('bad shit');
+				throw `Error while fetching data from ${url} (${res.status} ${res.statusText}).`;
+			} else {
+				version = await res.json();
+			}
+		} catch (err) {
+			console.log(err);
 		}
-		const { Version } = await res.json();
-		return Version;
+		console.log(version);
+		return version.Version;
 	};
 </script>
 
 {#await getVersion()}
 	loading...
 {:then Version}
-	<div class="container mx-auto p-8 space-y-8">
-		<h1 class="h1">Ymir</h1>
-		Version from Server: {Version}
+	<div class="container mx-auto space-y-8 p-8">
+		<span class="justify-right flex">
+			<a href="about/ymir" class="logo h1">ᛃᛗᛁᚱ</a>
+			<h1 class="h1">- Ymir <span class="italic">(ˈē-ˌmir')</span></h1>
+		</span>
+		<h3 class="h3">Version from Server: {Version}</h3>
 		<h3 class="h3">Description:</h3>
 		<p>
 			Ymir is a 3D model manager. In a nutshell it is a light and local version of the
@@ -32,14 +46,14 @@
 		<p>
 			While I love what the folks at Prusa (and Free3D) are doing, I created Ymir for a few reasons.
 			First I am selfish and dont want to share my models with the whole world. Second I wanted a
-			model manager that can tie into my printer and print directly to it (yes I know about Octoprint.
-			More on that later). I also did not want it to be tied to a specific printer brand like printables.com is.
-			Right now Ymir will only connect to printers using OctoPrint.
+			model manager that can tie into my printer and print directly to it (yes I know about
+			Octoprint. More on that later). I also did not want it to be tied to a specific printer brand
+			like printables.com is. Right now Ymir will only connect to printers using OctoPrint.
 		</p>
 		<p>
-			I get why Prusa does that and Im cool with it. In fact I own a Prusa printer myself. But a lot of folks dont.
-			Plus Im pretty sure my next printer is gonna be a Voron. Lastly I wanted something I could run locally and
-			not have to create an account on.
+			I get why Prusa does that and Im cool with it. In fact I own a Prusa printer myself. But a lot
+			of folks dont. Plus Im pretty sure my next printer is gonna be a Voron. Lastly I wanted
+			something I could run locally and not have to create an account on.
 		</p>
 		<p class="mb-4">
 			Now about Octoprint. I have it installed on my Prusa Mk3S, and its pretty cool. I can print
@@ -55,7 +69,7 @@
 		</p>
 		<h3 class="h3">Design:</h3>
 		<p>In its current version, Ymir is built with:</p>
-		<ul class="list-disc pl-8 myUL">
+		<ul class="myUL list-disc pl-8">
 			<li>Golang</li>
 			<li><a href="https://svelte.dev/">Svelte</a></li>
 			<li><a href="https://kit.svelte.dev/">Sveltekit</a></li>
@@ -64,7 +78,7 @@
 		</ul>
 		<h3 class="h3">License:</h3>
 		<a href="https://opensource.org/licenses/gpl-3-0"
-			><img src="https://img.shields.io/badge/License-gplv3-red.svg" alt="gpl3 license logo"/></a
+			><img src="https://img.shields.io/badge/License-gplv3-red.svg" alt="gpl3 license logo" /></a
 		>
 	</div>
 {:catch err}

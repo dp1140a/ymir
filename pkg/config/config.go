@@ -16,19 +16,20 @@ import (
 var defaultConfig = []byte(`printConfig = true
 
 [logging]
-traceLogging = true
 logFile = "log/ymir.log"
+logLevel="DEBUG"
+stdOut = true
+fileOut = false
 
-[db]
-host = "localhost"
-port = "5984"
-username = "admin"
-password = "password"
-dbName = "ymir"
+[datastore]
+dbFile="ymir2.db"
 
 [models]
 uploadsTempDir="uploads/tmp"
-uploadsFilesDir="uploads/modelFiles"
+modelsDir="uploads/modelFiles"
+
+[printers]
+printersDir="uploads/printers"
 
 [http]
 hostname = "0.0.0.0"
@@ -43,9 +44,9 @@ JWTSecret = "abc123"
 
 [http.logging]
 enabled = true
-stdout = true
-fileout = true
-logfile = "log/ymir_http.log"`)
+stdOut = false
+fileOut = true
+logFile = "log/ymir_http.log"`)
 
 // initConfig reads in config file and ENV variables if set.
 func InitConfig() {

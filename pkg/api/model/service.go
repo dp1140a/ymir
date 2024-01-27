@@ -26,12 +26,15 @@ type ModelServiceIface interface {
 	GetModel(id string) (types.Model, error)
 	ListModels() (models map[string]types.Model, err error)
 	ExportModel(path string, writer io.Writer) error
-	UploadFile(file multipart.File, filename string, basePath string, isExistingModel bool) (key string, err error)
+
 	FetchModelImage(imagePath string) (imageBytes []byte, err error)
 	FetchSTL(filepath string) (stlBytes []byte, err error)
-	FetchSTLThumbnail(filepath string) string
+	FetchSTLThumbnail(filepath string) (string, error)
 	AddNote(model types.Model) error
 	GetGCodeMetaData(path string) (gcode.GCodeMetaData, error)
+	//UploadFile(file multipart.File, filename string, basePath string, isExistingModel bool) (key string, err error)
+	UploadFilesExistingModel(file multipart.File, filename string, basePath string) (string, error)
+	UploadFilesNewModel(file multipart.File, filename string) (string, error)
 }
 
 type ModelService struct {

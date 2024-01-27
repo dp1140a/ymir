@@ -1,103 +1,75 @@
 <script lang="ts">
-  import type {PrinterStatus, Printer} from '$lib/Printer'
-  import {CheckPrinterStatus} from "$lib/Printer"
+	import type { Printer, PrinterStatus } from '$lib/Printer';
+	import { CheckPrinterStatus } from '$lib/Printer';
 
-  export let printer:Printer
+	export let printer: Printer;
 
+	let status: { online: string; printerStatus: PrinterStatus; err: Error } = {
+		online: '',
+		printerStatus: null,
+		err: null
+	};
+	status.online = 'Offline';
+	status.printerStatus = {
+		state: { text: 'Unknown' },
+		temperature: { bed: { actual: 0 }, tool0: { actual: 0 }, A: { actual: 0 } }
+	};
+
+	$: CheckPrinterStatus(printer).then((data) => {
+		status = data;
+	});
 </script>
 
-{#await CheckPrinterStatus(printer)}
-
-{:then status}
-  {#if status.printerStatus}
-    <div class="h-[64px] my-8 bg-surface-200 grid grid-cols-8">
-    <div class="px-4">
-      <a href="">
-        <img src="/mk3s.svg" class=" printer-img">
-      </a>
-    </div>
-    <div class="my-auto">
-      <a href="/printers/{printer._id}">
-        <span title="ymir" class="font-semibold text-xl">{printer.printerName}</span>
-      </a>
-    </div>
-    <div class="bg-neutral-700 m-auto border-l-4 border-lime-600 myDiv">
-      <span class="text-lime-600 middle px-10">{printer.url}<br/>{status.online}</span>
-    </div>
-    <div class="bg-neutral-700 m-auto border-l-4 myDiv border-yellow-600">
-      <span class="text-neutral-100 middle px-10">Status: {status.printerStatus.state.text}</span>
-    </div>
-    <div class="m-auto">
-      <div class="text-s">Bed Temp</div>
-      <div class="">{status.printerStatus.temperature.bed.actual}<span>&#176;</span></div>
-    </div>
-    <div class="m-auto">
-      <div class="text-s">Extruder Temp</div>
-      <div class="">{status.printerStatus.temperature.tool0.actual}<span>&#176;</span></div>
-    </div>
-    <div class="m-auto">
-      <div class="text-s">Ambient Temp</div>
-      <div class="">{status.printerStatus.temperature.A.actual}<span>&#176;</span></div>
-    </div>
-    <div class="m-auto">
-      <div class="text-s">Location</div>
-      <div class="">{printer.location.name}</div>
-    </div>
-  </div>
-  {:else }
-    <div class="h-[64px] my-8 bg-surface-200 grid grid-cols-8">
-      <div class="px-4">
-        <a href="">
-          <img src="/mk3s.svg" class=" printer-img">
-        </a>
-      </div>
-      <div class="my-auto">
-        <a href="/printers/{printer._id}">
-          <span title="ymir" class="font-semibold text-xl">{printer.printerName}</span>
-        </a>
-      </div>
-      <div class="bg-neutral-700 m-auto border-l-4 border-red-800 myDiv">
-        <span class="text-red-700 middle px-10">{printer.url}<br/>{status.online}</span>
-      </div>
-      <div class="bg-neutral-700 m-auto border-l-4 myDiv border-yellow-600">
-        <span class="text-neutral-100 middle px-10">Status: UNKNOWN</span>
-      </div>
-      <div class="m-auto">
-        <div class="text-s">Bed Temp</div>
-        <div class="">Unknown</div>
-      </div>
-      <div class="m-auto">
-        <div class="text-s">Extruder Temp</div>
-        <div class="">Unknown</div>
-      </div>
-      <div class="m-auto">
-        <div class="text-s">Ambient Temp</div>
-        <div class="">Unknown</div>
-      </div>
-      <div class="m-auto">
-        <div class="text-s">Location</div>
-        <div class="">{printer.location.name}</div>
-      </div>
-    </div>
-  {/if}
-{/await}
+<div class="my-8 grid h-[64px] grid-cols-8 bg-surface-200">
+	<div class="px-4">
+		<a href={'#'}>
+			<img src="/mk3s.svg" class=" printer-img" alt="mk3s.svg" />
+		</a>
+	</div>
+	<div class="my-auto">
+		<a href="/printers/{printer._id}">
+			<span title="ymir" class="text-xl font-semibold">{printer.printerName}</span>
+		</a>
+	</div>
+	<div class="myDiv m-auto border-l-4 border-lime-600 bg-neutral-700">
+		<span class="middle px-10 text-lime-600">{printer.url}<br />{status.online}</span>
+	</div>
+	<div class="myDiv m-auto border-l-4 border-yellow-600 bg-neutral-700">
+		<span class="middle px-10 text-neutral-100">Status: {status.printerStatus.state.text}</span>
+	</div>
+	<div class="m-auto">
+		<div class="text-s">Bed Temp</div>
+		<div class="">{status.printerStatus.temperature.bed.actual}<span>&#176;</span></div>
+	</div>
+	<div class="m-auto">
+		<div class="text-s">Extruder Temp</div>
+		<div class="">{status.printerStatus.temperature.tool0.actual}<span>&#176;</span></div>
+	</div>
+	<div class="m-auto">
+		<div class="text-s">Ambient Temp</div>
+		<div class="">{status.printerStatus.temperature.A.actual}<span>&#176;</span></div>
+	</div>
+	<div class="m-auto">
+		<div class="text-s">Location</div>
+		<div class="">{printer.location.name}</div>
+	</div>
+</div>
 
 <style>
-  .printer-img{
-      height: 60px;
-      width: 60px !important;
-  }
+	.printer-img {
+		height: 60px;
+		width: 60px !important;
+	}
 
-  .myDiv {
-      height: 64px;
-      line-height: 64px;
-      text-align: center;
-  }
+	.myDiv {
+		height: 64px;
+		line-height: 64px;
+		text-align: center;
+	}
 
-  .middle {
-      display: inline-block;
-      vertical-align: middle;
-      line-height: normal;
-  }
-
+	.middle {
+		display: inline-block;
+		vertical-align: middle;
+		line-height: normal;
+	}
 </style>

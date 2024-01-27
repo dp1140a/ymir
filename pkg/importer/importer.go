@@ -23,12 +23,16 @@ type Importer struct {
 	Tags       []types.Tags
 }
 
-func NewImporter(base string) *Importer {
+func NewImporter(base string, inDB bool) *Importer {
 	importer := &Importer{
-		config:     NewImporterConfig(),
-		modelStore: store.NewModelDataStore().(store.ModelStore),
-		baseDir:    base,
+		config:  NewImporterConfig(),
+		baseDir: base,
 	}
+	if inDB {
+		fmt.Printf("DB Flag is set will write to DB")
+		importer.modelStore = store.NewModelDataStore().(store.ModelStore)
+	}
+
 	return importer
 }
 
@@ -51,8 +55,12 @@ func (i *Importer) walk(path string, m *types.Model) error {
 	dirs, _ := os.ReadDir(path)
 	fmt.Printf("  %v entries\n", len(dirs))
 	for _, f := range dirs {
+		fmt.Printf("Path: %v\n", path)
 		relPath, _ := filepath.Rel(i.baseDir, path)
-		fName := fmt.Sprintf("%v/%v", relPath, f.Name())
+		//relPath, _ = filepath.Rel(relPath, path)
+		fmt.Printf("RelPath: %v\n", relPath)
+		fName := fmt.Sprintf("%v/%v", filepath.Base(relPath), f.Name())
+		fmt.Printf("fName: %v\n", fName)
 		if f.IsDir() {
 			if onlyDirectories(path) {
 				fmt.Printf("   %v is only directories moving on\n", path)
@@ -64,11 +72,14 @@ func (i *Importer) walk(path string, m *types.Model) error {
 			}
 
 		} else {
+			if isExecutable(f.Type()) || !isModelFile(f.Name()) {
+				continue
+			}
 			if m == nil {
 				fmt.Println("Creating Model:")
 				m = &types.Model{
 					Id:          utils.GenId(),
-					DisplayName: cleanDisplayName(filepath.Base(i.baseDir)),
+					DisplayName: cleanDisplayName(filepath.Base(relPath)),
 					BasePath:    path,
 					Tags:        i.Tags,
 					ModelFiles:  []types.FileType{},
@@ -106,7 +117,7 @@ func (i *Importer) walk(path string, m *types.Model) error {
 				if f.Name() == "model.json" {
 					continue
 				}
-				fmt.Printf("  Adding Other File: %v\n", f.Name())
+				//fmt.Printf("  Adding Other File: %v\n", f.Name())
 				m.OtherFiles = append(m.OtherFiles, types.FileType{Path: f.Name()})
 				continue
 			}
@@ -151,6 +162,22 @@ func onlyDirectories(dirPath string) bool {
 	return true
 }
 
+func isExecutable(mode os.FileMode) bool {
+	return mode&0111 != 0
+}
+
+func isModelFile(name string) bool {
+	fileTypes := [][]string{MODEL_TYPES, PRINT_TYPES, IMAGE_TYPES, OTHER_TYPES}
+
+	for _, fileType := range fileTypes {
+		if slices.Contains(fileType, filepath.Ext(name)[1:]) {
+			return true
+		}
+	}
+
+	return false
+}
+
 /*
 This function is just a conveniience wrapper
 */
@@ -160,5 +187,10 @@ func (i *Importer) FindModels() error {
 		log.Fatal(err)
 	}
 	i.walk(base, nil)
+	if len(i.Models) == 0 {
+		fmt.Println("NO MODELS FOUND.  TRY ANOTHER DIRECTORY!")
+	} else {
+		fmt.Printf("%v MODELS FOUND.", len(i.Models))
+	}
 	return nil
 }
