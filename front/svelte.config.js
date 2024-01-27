@@ -7,6 +7,14 @@ const config = {
 	preprocess: [vitePreprocess({})],
 
 	kit: {
+		csp: {
+			directives: {
+				'script-src': ['self']
+			},
+			reportOnly: {
+				'script-src': ['self']
+			}
+		},
 		paths: {
 			base: ''
 		},

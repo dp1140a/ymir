@@ -215,6 +215,7 @@
 								</div>
 							</svelte:fragment>
 							<svelte:fragment slot="content">
+								<!-- eslint-disable svelte/no-at-html-tags -->
 								<pre class="rounded border-zinc-800 bg-zinc-800 p-4"><code
 										contenteditable="true"
 										on:input={() => {
@@ -284,6 +285,7 @@
 								</div>
 							</svelte:fragment>
 							<svelte:fragment slot="content">
+								<!-- eslint-disable svelte/no-at-html-tags -->
 								<pre class="rounded border-zinc-800 bg-zinc-800 p-4"><code
 										contenteditable="true"
 										on:input={() => {
@@ -291,12 +293,8 @@
 										}}
 										on:blur={(event) => {
 											printers[key] = event.target.innerText;
-										}}
-										>{@html Prism.highlight(
-											JSON.stringify(printer, null, 2),
-											Prism.languages.json,
-											'json'
-										)}</code
+										}}>
+									{@html Prism.highlight(JSON.stringify(printer, null, 2), Prism.languages.json, 'json')}</code
 									></pre>
 							</svelte:fragment>
 						</AccordionItem>
@@ -312,15 +310,9 @@
 		color: #a53c23;
 	}
 
-	.editable:hover,
 	[contenteditable='true']:active,
 	[contenteditable='true']:focus {
 		border: 0px;
 		outline: none;
-		/*
-				background: rgb(211, 211, 211);
-        border-radius: 4px;
-        padding: 8px;
-         */
 	}
 </style>
