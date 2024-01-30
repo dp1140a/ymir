@@ -1,20 +1,20 @@
 printConfig = false
 
 [logging]
-logFile = "log/ymir.log"
-logLevel="DEBUG"
+logFile = "/var/log/ymir/ymir.log"
+logLevel="INFO"
 stdOut = true
-fileOut = false
+fileOut = true
 
 [datastore]
-dbFile="ymir.db"
+dbFile="~/.ymir/ymir.db"
 
 [models]
-uploadsTempDir="uploads/tmp"
-modelsDir="uploads/modelFiles"
+uploadsTempDir="~/.ymir/uploads/tmp"
+modelsDir="~/.ymir/models"
 
 [printers]
-printersDir="uploads/printers"
+printersDir="~/.ymir/printers"
 
 [http]
 hostname = "0.0.0.0"
@@ -31,4 +31,4 @@ JWTSecret = "abc123"
 enabled = true
 stdOut = false
 fileOut = true
-logFile = "log/ymir_http.log"
+logFile = "/var/log/ymir/ymir_http.log"
