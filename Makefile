@@ -12,6 +12,7 @@ PKG_DIR = $(MD)/pkg
 CMD_DIR = $(PKG_DIR)/cmd
 DIST_DIR = $(WD)/dist
 LOG_DIR = $(WD)/log
+CONFIG_DIR = $(WD)/config
 REPORT_DIR = $(WD)/reports
 IGNORE_DIRS = "/scratch"
 
@@ -51,7 +52,7 @@ deps:
 	go mod download -x
 	@echo $(DONE) "Deps"
 
-## build: Install missing dependencies. Builds binary in ./build
+## front: Build the front end ui
 .PHONY: front
 front:
 	@echo "Building Front UI"
@@ -75,16 +76,21 @@ build: tidy fmt
 
 ## dist: Creates a distribution
 .PHONY: dist
-dist: clean reports front build
+dist: clean reports front build package
+	$(info "Built v$(VERSION), build $(COMMIT_ID)")
+	@echo $(DONE) "Dist\n"
+
+## package: Packages a distribution
+.PHONY: package
+package:
 	cd "$(DIST_DIR)"; for dir in ./**; do \
-		#cp $(PKG_DIR)/config.toml $$dir; \
-		#cp -r $(PKG_DIR)/etc $$dir; \
-		#cp $(PKG_DIR)/scripts/* $$dir;\
+		cp $(CONFIG_DIR)/ymir.toml $$dir; \
+		cp $(WD)/README.md $$dir; \
+		cp $(WD)/LICENSE $$dir; \
 		$(GZCMD) "$(basename "$$dir").tar.gz" "$$dir"; \
 	done
 	cd "$(DIST_DIR)"; find . -maxdepth 1 -type f -printf "$(SHACMD) %P | tee \"./%P.sha\"\n" | sh
-	$(info "Built v$(VERSION), build $(COMMIT_ID)")
-	@echo $(DONE) "Dist\n"
+	@echo $(DONE) "Package\n"
 
 ## tidy: Verifies and downloads all required dependencies
 .PHONY: tidy
@@ -200,5 +206,5 @@ debug:
 
 .PHONY: help
 help: Makefile
-	@echo "\n Choose a command run in "$(PROJECTNAME)":\n"
+	@echo "Choose a command run in "$(PROJECTNAME)":"
 	@sed -n 's/^##//p' $< | column -t -s ':' |  sed -e 's/^/ /'
