@@ -69,7 +69,7 @@ build: tidy fmt
 	#go generate ./...
 	@echo "  $(M)  Building...\n"
 	#@echo "GOBIN: $(GOBIN)"
-	$(GOBIN)/gox -arch="$(ARCHES)" -os="$(OSES)" -output="$(OUTTPL)/{{.Dir}}" \
+	$(GOBIN)/gox -arch="$(ARCHES)" -os="$(OSES)" -output="$(OUTTPL)/bin/{{.Dir}}" \
       	-tags "$(BUILD_TAGS)" -ldflags "$(LDFLAGS)"
 	@echo "Built version:$(VERSION), build:$(GIT_COMMIT)"
 	@echo $(DONE) "Build\n"
@@ -83,10 +83,15 @@ dist: clean reports front build package
 ## package: Packages a distribution
 .PHONY: package
 package:
-	cd "$(DIST_DIR)"; for dir in ./**; do \
+	rm -rf $(DIST_DIR)/*.tar.gz*
+	cd "$(DIST_DIR)";
+	for dir in ./**; do \
 		cp $(CONFIG_DIR)/ymir.toml $$dir; \
-		cp $(WD)/README.md $$dir; \
-		cp $(WD)/LICENSE $$dir; \
+        cp $(WD)/README.md $$dir; \
+        cp $(WD)/LICENSE $$dir; \
+        if [[ $$dir =~ "linux" ]]; then \
+          echo In Dir $$dir; \
+        fi; \
 		$(GZCMD) "$(basename "$$dir").tar.gz" "$$dir"; \
 	done
 	cd "$(DIST_DIR)"; find . -maxdepth 1 -type f -printf "$(SHACMD) %P | tee \"./%P.sha\"\n" | sh
@@ -206,5 +211,5 @@ debug:
 
 .PHONY: help
 help: Makefile
-	@echo "Choose a command run in "$(PROJECTNAME)":"
+	@echo "\n Choose a command run in "$(PROJECTNAME)":\n"
 	@sed -n 's/^##//p' $< | column -t -s ':' |  sed -e 's/^/ /'

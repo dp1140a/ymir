@@ -17,7 +17,7 @@ cp {README.md, LICENSE, ymir} $INSTALL_DIR
 ln -s $INSTALL_DIR $CURRENT_DIR
 
 #Create symlink in /usr/bin to above
-ln -s /usr/bin/ymir $CURRENT_DIR/ymir
+ln -s /usr/bin/ymir $CURRENT_DIR/bin/ymir
 
 # Install config file to ~/.ymir
 mkdir -p $HOME/.ymir
