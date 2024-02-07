@@ -13,23 +13,23 @@ import (
 	"ymir/pkg"
 )
 
-var defaultConfig = []byte(`printConfig = true
+var defaultConfig = []byte(`printConfig = false
 
 [logging]
-logFile = "log/ymir.log"
-logLevel="DEBUG"
+logFile = "/var/log/ymir/ymir.log"
+logLevel="INFO"
 stdOut = true
-fileOut = false
+fileOut = true
 
 [datastore]
-dbFile="ymir2.db"
+dbFile="~/.ymir/ymir.db"
 
 [models]
-uploadsTempDir="uploads/tmp"
-modelsDir="uploads/modelFiles"
+uploadsTempDir="~/.ymir/uploads/tmp"
+modelsDir="~/.ymir/models"
 
 [printers]
-printersDir="uploads/printers"
+printersDir="~/.ymir/printers"
 
 [http]
 hostname = "0.0.0.0"
@@ -46,7 +46,7 @@ JWTSecret = "abc123"
 enabled = true
 stdOut = false
 fileOut = true
-logFile = "log/ymir_http.log"`)
+logFile = "/var/log/ymir/ymir_http.log""`)
 
 // initConfig reads in config file and ENV variables if set.
 func InitConfig() {
@@ -61,11 +61,10 @@ func InitConfig() {
 
 		viper.SetConfigType("toml")
 		viper.SetConfigName("ymir")
-		viper.AddConfigPath(".")                      // Local dir
-		viper.AddConfigPath("./config")               // ./config dir
-		viper.AddConfigPath(pkg.APP_NAME)             // Looks in APP_NAME
-		viper.AddConfigPath("/etc/" + pkg.APP_NAME)   // Looks in etc/APP_NAME
 		viper.AddConfigPath("$HOME/." + pkg.APP_NAME) // Looks in ~/.APP_NAME
+		viper.AddConfigPath(".")                      // Local dir
+		viper.AddConfigPath(pkg.APP_NAME)             // Looks in ./APP_NAME
+		viper.AddConfigPath("/etc/" + pkg.APP_NAME)   // Looks in etc/APP_NAME
 		viper.AddConfigPath(home)                     // Looks in HOME
 	}
 	viper.SetEnvPrefix(pkg.APP_NAME)

@@ -12,6 +12,7 @@ PKG_DIR = $(MD)/pkg
 CMD_DIR = $(PKG_DIR)/cmd
 DIST_DIR = $(WD)/dist
 LOG_DIR = $(WD)/log
+CONFIG_DIR = $(WD)/config
 REPORT_DIR = $(WD)/reports
 IGNORE_DIRS = "/scratch"
 
@@ -51,7 +52,7 @@ deps:
 	go mod download -x
 	@echo $(DONE) "Deps"
 
-## build: Install missing dependencies. Builds binary in ./build
+## front: Build the front end ui
 .PHONY: front
 front:
 	@echo "Building Front UI"
@@ -68,23 +69,34 @@ build: tidy fmt
 	#go generate ./...
 	@echo "  $(M)  Building...\n"
 	#@echo "GOBIN: $(GOBIN)"
-	$(GOBIN)/gox -arch="$(ARCHES)" -os="$(OSES)" -output="$(OUTTPL)/{{.Dir}}" \
+	$(GOBIN)/gox -arch="$(ARCHES)" -os="$(OSES)" -output="$(OUTTPL)/bin/{{.Dir}}" \
       	-tags "$(BUILD_TAGS)" -ldflags "$(LDFLAGS)"
 	@echo "Built version:$(VERSION), build:$(GIT_COMMIT)"
 	@echo $(DONE) "Build\n"
 
 ## dist: Creates a distribution
 .PHONY: dist
-dist: clean reports front build
-	cd "$(DIST_DIR)"; for dir in ./**; do \
-		#cp $(PKG_DIR)/config.toml $$dir; \
-		#cp -r $(PKG_DIR)/etc $$dir; \
-		#cp $(PKG_DIR)/scripts/* $$dir;\
+dist: clean reports front build package
+	$(info "Built v$(VERSION), build $(COMMIT_ID)")
+	@echo $(DONE) "Dist\n"
+
+## package: Packages a distribution
+.PHONY: package
+package:
+	rm -rf $(DIST_DIR)/*.tar.gz*
+	for dir in $(DIST_DIR)/**; do \
+		cp $(CONFIG_DIR)/ymir.toml $$dir; \
+        cp $(WD)/README.md $$dir; \
+        cp $(WD)/LICENSE $$dir; \
+        if [[ $$dir =~ "linux" ]]; then \
+          echo In Dir $($dir); \
+          cp -r $(WD)/assets/install/* $$dir; \
+        fi; \
+        echo $(notdir "$$dir"); \
 		$(GZCMD) "$(basename "$$dir").tar.gz" "$$dir"; \
 	done
 	cd "$(DIST_DIR)"; find . -maxdepth 1 -type f -printf "$(SHACMD) %P | tee \"./%P.sha\"\n" | sh
-	$(info "Built v$(VERSION), build $(COMMIT_ID)")
-	@echo $(DONE) "Dist\n"
+	@echo $(DONE) "Package\n"
 
 ## tidy: Verifies and downloads all required dependencies
 .PHONY: tidy
