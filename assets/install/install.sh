@@ -24,13 +24,13 @@ mkdir -p $HOME/.ymir
 cp ymir.toml $HOME/.ymir
 
 # Install .desktop file for ui in ~/.local/share/applications
-cp ymir.desktop $HOME/.local/share/applications/
+cp $CURRENT_DIR/lib/ymir.desktop $HOME/.local/share/applications/
 
 # install icon in ~/.local/share/icons
-cp ymir*.png $HOME/.local/share/icons/
+cp $CURRENT_DIR/lib/ymir*.png $HOME/.local/share/icons/
 
 # Install .service file in /lib/systemd/system/
-cp ymir.service /lib/systemd/system/
+cp $CURRENT_DIR/lib/ymir.service /lib/systemd/system/
 systemctl start ymir
 systemctl enable ymir
 systemctl daemon-reload

@@ -84,14 +84,15 @@ dist: clean reports front build package
 .PHONY: package
 package:
 	rm -rf $(DIST_DIR)/*.tar.gz*
-	cd "$(DIST_DIR)";
-	for dir in ./**; do \
+	for dir in $(DIST_DIR)/**; do \
 		cp $(CONFIG_DIR)/ymir.toml $$dir; \
         cp $(WD)/README.md $$dir; \
         cp $(WD)/LICENSE $$dir; \
         if [[ $$dir =~ "linux" ]]; then \
-          echo In Dir $$dir; \
+          echo In Dir $($dir); \
+          cp -r $(WD)/assets/install/* $$dir; \
         fi; \
+        echo $(notdir "$$dir"); \
 		$(GZCMD) "$(basename "$$dir").tar.gz" "$$dir"; \
 	done
 	cd "$(DIST_DIR)"; find . -maxdepth 1 -type f -printf "$(SHACMD) %P | tee \"./%P.sha\"\n" | sh
