@@ -76,7 +76,8 @@ build: tidy fmt
 
 ## dist: Creates a distribution
 .PHONY: dist
-dist: clean reports front build package
+dist: clean reports front build
+	make package
 	$(info "Built v$(VERSION), build $(COMMIT_ID)")
 	@echo $(DONE) "Dist\n"
 
@@ -95,20 +96,7 @@ package: dist/*
 		fi; \
 		tar -czf "$(basename "$$dir").tar.gz" -C dist $$(basename $${dir}); \
     done
-
-	##for dir in $(DIST_DIR)/**; do \
-  		##BASE=$${dir}; \
-  		##echo -e "DIR: $(BASE)" \
-		## cp $(CONFIG_DIR)/ymir.toml $$dir; \
-        ##cp $(WD)/README.md $$dir; \
-        ##cp $(WD)/LICENSE $$dir; \
-        ##if [[ $$dir =~ "linux" ]]; then \
-          ##echo In Dir $$dir; \
-          ##cp -r $(WD)/assets/install/* $$dir; \
-        ##fi; \
-		## tar -czf "$(basename "$$dir").tar.gz" -C dist $(basename $$dir;) \
-	##done
-	## cd "$(DIST_DIR)"; find . -maxdepth 1 -type f -printf "$(SHACMD) %P | tee \"./%P.sha\"\n" | sh
+	cd "$(DIST_DIR)"; find . -maxdepth 1 -type f -printf "$(SHACMD) %P | tee \"./%P.sha\"\n" | sh
 	@echo $(DONE) "Package\n"
 
 ## tidy: Verifies and downloads all required dependencies
