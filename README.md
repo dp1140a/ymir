@@ -40,7 +40,10 @@ And did I mention Ymir has a built-in STL viewer.
 
 ## Installing
 ### Binaries
-Binaries are available for Linux, MacOS, and Windows.  they can be found [here](https://github.com/dp1140a/ymir/releases/latest)
+Binaries are available for Linux, MacOS, and Windows.
+For linux distros you can also install it as a service for the backend and get a desktop icon to launch the UI
+(assuming you don't change the host or port.  if you do update the desktop file accordingly)
+They can be found [here](https://github.com/dp1140a/ymir/releases/latest)
 
 ### From Source
 To build it you will need a few things installed:
