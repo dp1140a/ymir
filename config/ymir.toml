@@ -7,7 +7,7 @@ stdOut = true
 fileOut = true
 
 [datastore]
-dbFile="~/.ymir/ymir.db"
+dbFile="/usr/lib/ymir/ymir.db"
 
 [models]
 uploadsTempDir="~/.ymir/uploads/tmp"

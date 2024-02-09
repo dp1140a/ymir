@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"path"
 
 	"github.com/BurntSushi/toml"
 	"github.com/spf13/cobra"
@@ -61,11 +62,11 @@ func InitConfig() {
 
 		viper.SetConfigType("toml")
 		viper.SetConfigName("ymir")
-		viper.AddConfigPath("$HOME/." + pkg.APP_NAME) // Looks in ~/.APP_NAME
-		viper.AddConfigPath(".")                      // Local dir
-		viper.AddConfigPath(pkg.APP_NAME)             // Looks in ./APP_NAME
-		viper.AddConfigPath("/etc/" + pkg.APP_NAME)   // Looks in etc/APP_NAME
-		viper.AddConfigPath(home)                     // Looks in HOME
+		viper.AddConfigPath(path.Join(home, pkg.APP_NAME))    // Looks in ~/.APP_NAME
+		viper.AddConfigPath(".")                              // Local dir
+		viper.AddConfigPath(pkg.APP_NAME)                     // Looks in ./APP_NAME
+		viper.AddConfigPath(path.Join("/etc/", pkg.APP_NAME)) // Looks in /etc/APP_NAME
+		viper.AddConfigPath(home)                             // Looks in HOME
 	}
 	viper.SetEnvPrefix(pkg.APP_NAME)
 	viper.AutomaticEnv() // read in environment variables that match

@@ -2,12 +2,10 @@ package front
 
 import (
 	"embed"
-	"errors"
-	"fmt"
 	"io/fs"
 	"net/http"
 	"os"
-	"strings"
+	"path/filepath"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -19,21 +17,33 @@ import (
 //go:embed all:build
 var files embed.FS
 
-func StaticHandler(path string) http.Handler {
-	fsys, err := fs.Sub(files, "build")
+// Get the subtree of the embedded files with `build` directory as a root.
+func buildHTTPFS() http.FileSystem {
+	build, err := fs.Sub(files, "build")
 	if err != nil {
 		log.Fatal(err)
 	}
-	filesystem := http.FS(fsys)
+	return http.FS(build)
+}
 
+func HandleSPA() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		path := strings.TrimPrefix(r.URL.Path, path)
-		// try if file exists at path, if not append .html (SvelteKit adapter-static specific)
-		_, err := filesystem.Open(path)
-		if errors.Is(err, os.ErrNotExist) {
-			path = fmt.Sprintf("%s.html", path)
+		buildPath := "build"
+		f, err := files.Open(filepath.Join(buildPath, r.URL.Path))
+		if os.IsNotExist(err) {
+			index, err := files.ReadFile(filepath.Join(buildPath, "index.html"))
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			w.WriteHeader(http.StatusAccepted)
+			w.Write(index)
+			return
+		} else if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
-		r.URL.Path = path
-		http.FileServer(filesystem).ServeHTTP(w, r)
+		defer f.Close()
+		http.FileServer(buildHTTPFS()).ServeHTTP(w, r)
 	})
 }
