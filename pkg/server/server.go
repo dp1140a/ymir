@@ -73,9 +73,7 @@ func NewServer() (*Server, error) {
 	//Append the base and static handlers Last
 	s.Handlers = append(s.Handlers, api.NewBaseHandler(s.HttpLogger, s.Router))
 	s.Router.Mount(_API_VERSION, s.registerRoutes()) // base
-
-	s.Router.Mount("/", front.StaticHandler("/"))
-	//s.Router.Handle("/admin", frontend.SvelteKitHandler("/admin")) //static
+	s.Router.Mount("/", front.HandleSPA())           //Svelte Static Route Handler
 
 	return s, nil
 }

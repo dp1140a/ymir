@@ -69,6 +69,8 @@ This will embed the UI in the go executable
 deps              Download and Install any missing dependecies
 build             Install missing dependencies. Builds binary in ./build
 dist              Creates a distribution
+front             Build the frontend UI
+package           Packages a build for distribution
 tidy              Verifies and downloads all required dependencies
 fmt               Runs gofmt on all source files
 test              Tests code coverage
