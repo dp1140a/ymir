@@ -1,15 +1,18 @@
 package importer
 
 import (
-	"ymir/pkg/config"
+	"github.com/spf13/viper"
 	"ymir/pkg/db/boltdatastore"
 )
 
 type ImporterConfig struct {
 	storeConfig *boltdatastore.BoltDBDataStoreConfig
+	modelsBase  string
 }
 
 func NewImporterConfig() *ImporterConfig {
-	config.InitConfig()
-	return &ImporterConfig{storeConfig: boltdatastore.NewBoltDBDataStoreConfig()}
+	return &ImporterConfig{
+		storeConfig: boltdatastore.NewBoltDBDataStoreConfig(),
+		modelsBase:  viper.GetString("models.modelsDir"),
+	}
 }

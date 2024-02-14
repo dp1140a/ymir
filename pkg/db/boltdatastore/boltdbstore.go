@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -28,13 +30,20 @@ func NewBoltDBDatastore(config *BoltDBDataStoreConfig) (datastore *BoltDBDataSto
 	b := &BoltDBDataStore{}
 	err := getInstance(config.DBFile)
 	if err != nil {
-		log.Fatal("Could not Open DB")
+		log.Error("Could not Open DB")
 	}
 	b.ds = instance
 	return b
 }
 
 func getInstance(dbFile string) error {
+	if _, err := os.Stat(filepath.Dir(dbFile)); os.IsNotExist(err) {
+		err := os.Mkdir(filepath.Dir(dbFile), 0750)
+		if err != nil {
+			log.Errorf("cant find or create db directory %v", err)
+			return err
+		}
+	}
 	if instance == nil {
 		lock.Lock()
 		defer lock.Unlock()

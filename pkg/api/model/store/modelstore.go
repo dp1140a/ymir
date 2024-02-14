@@ -2,7 +2,6 @@ package store
 
 import (
 	"encoding/json"
-	"fmt"
 
 	log "github.com/sirupsen/logrus"
 	bolt "go.etcd.io/bbolt"
@@ -31,7 +30,7 @@ type ModelStore struct {
 
 func NewModelDataStore() (store ModelStoreIFace) {
 	config := db.NewBoltDBDataStoreConfig()
-	fmt.Println(config.DBFile)
+	log.Debug(config.DBFile)
 	d := ModelStore{
 		ds: *db.NewBoltDBDatastore(config),
 	}
