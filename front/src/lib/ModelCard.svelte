@@ -17,7 +17,7 @@
 	}
 </script>
 
-<div class="card h-80 max-w-80 text-center" in:fade={{ duration: 750, easing: expoIn }}>
+<div class="card max-h-96 max-w-96 text-center" in:fade={{ duration: 750, easing: expoIn }}>
 	<header class="card-header h-16 flex-wrap rounded-t-lg bg-surface-300 text-sm">
 		<a href="{base}/models/{model._id}">{model.displayName}</a>
 	</header>
@@ -44,14 +44,14 @@
 			</a>
 		</div>
 		<div class="mt-2">
-			{#if model.summary != undefined}
+			{#if model.summary !== undefined}
 				{model.summary}
 			{/if}
 		</div>
 	</section>
 	<footer class="card-footer">
 		{#each model.tags as tag}
-			<span class="variant-ghost-surface chip mx-1">{tag}</span>
+			<span class="variant-ghost-surface chip p-1 ml-1 mt-1 text-xs">{tag}</span>
 		{/each}
 	</footer>
 </div>
