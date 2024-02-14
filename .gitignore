@@ -30,6 +30,7 @@ reports/*
 scripts/*
 VERSION
 ymir*.db
+testdata/*
 
 #Sveltekit
 front/node_modules
