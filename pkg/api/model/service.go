@@ -21,6 +21,7 @@ import (
 type ModelServiceIface interface {
 	api.Service
 	CreateModel(model types.Model) (id string, err error)
+	ImportModel(model types.Model) (id string, err error)
 	UpdateModel(model types.Model) (err error)
 	DeleteModel(id string) error
 	GetModel(id string) (types.Model, error)
@@ -205,6 +206,18 @@ func (ms ModelService) CreateModel(model types.Model) (id string, err error) {
 	}
 }
 
+func (ms ModelService) ImportModel(model types.Model) (id string, err error) {
+	model.Id = utils.GenId()
+	err = ms.modelStore.Create(model)
+	if err != nil {
+		log.Error(err)
+		return
+	} else {
+		log.Infof("created model %v in db", model.Id)
+		return model.Id, nil
+	}
+}
+
 func (ms ModelService) UpdateModel(model types.Model) (err error) {
 	err = ms.modelStore.Update(model)
 	if err != nil {
@@ -321,8 +334,8 @@ func (ms ModelService) UploadFilesNewModel(file multipart.File, filename string)
 	return path, nil
 }
 
-func (ms ModelService) FetchModelImage(imagePath string) (imageBytes []byte, err error) {
-	imageBytes, err = os.ReadFile(imagePath)
+func (ms ModelService) FetchModelImage(image string) (imageBytes []byte, err error) {
+	imageBytes, err = os.ReadFile(filepath.Join(ms.config.ModelsDir, image))
 	if err != nil {
 		log.Error(err)
 		return nil, err
@@ -331,8 +344,8 @@ func (ms ModelService) FetchModelImage(imagePath string) (imageBytes []byte, err
 	return imageBytes, nil
 }
 
-func (ms ModelService) FetchSTL(filepath string) (stlBytes []byte, err error) {
-	stlBytes, err = os.ReadFile(filepath)
+func (ms ModelService) FetchSTL(file string) (stlBytes []byte, err error) {
+	stlBytes, err = os.ReadFile(filepath.Join(ms.config.ModelsDir, file))
 	if err != nil {
 		log.Error(err)
 		return nil, err
@@ -341,8 +354,8 @@ func (ms ModelService) FetchSTL(filepath string) (stlBytes []byte, err error) {
 	return stlBytes, nil
 }
 
-func (ms ModelService) FetchSTLThumbnail(filepath string) (string, error) {
-	img := stl.Image(filepath)
+func (ms ModelService) FetchSTLThumbnail(file string) (string, error) {
+	img := stl.Image(filepath.Join(ms.config.ModelsDir, file))
 	imgStr, err := stl.ThumbnailBase64(img, 128, 128)
 	if err != nil {
 		log.Error(err)

@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"unsafe"
 
 	log "github.com/sirupsen/logrus"
@@ -11,9 +12,12 @@ import (
 )
 
 var (
-	Path string
-	Tags []string
-	inDb bool
+	Path      string
+	Tags      []string
+	inDb      bool
+	copy      bool
+	modelsDir string
+	ymirHost  string
 )
 
 // importCmd represents the import command
@@ -48,20 +52,22 @@ func init() {
 	importCmd.Flags().StringVarP(&Path, "path", "p", ".", "Base directory path of models to import.  Will walk all sub-directories from there")
 	importCmd.Flags().StringSliceVarP(&Tags, "tags", "t", []string{}, "Tags for each model found")
 	importCmd.Flags().BoolVarP(&inDb, "db", "d", false, "If true enters each model into the db")
+	importCmd.Flags().BoolVarP(&copy, "cp", "c", true, "Copy the models to ymir base models dir")
+	importCmd.Flags().StringVarP(&modelsDir, "modelsDir", "m", "", "Path to the Ymir models dir as defined in the ymir config.  "+
+		"This will override any value in the ymir config file. Use with caution.")
+	importCmd.Flags().StringVarP(&ymirHost, "ymirHost", "y", "", "The host and port of the ymir server.")
 }
 
 func runImport() {
-	imp := importer.NewImporter(Path, inDb)
+	imp := importer.NewImporter(Path, inDb, copy, modelsDir, ymirHost)
 	imp.Tags = *(*[]types.Tags)(unsafe.Pointer(&Tags))
 	err := imp.FindModels()
 	if err != nil {
 		log.Fatal(err)
 	}
 	if inDb {
-		err = imp.PutInDB()
+		imp.PutInDB()
 	}
-	if err != nil {
-		log.Fatal(err)
-	}
+	fmt.Println("IMPORT COMPLETE.")
 
 }

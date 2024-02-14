@@ -13,6 +13,7 @@ require (
 	github.com/go-chi/jwtauth/v5 v5.1.1
 	github.com/google/uuid v1.1.2
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
+	github.com/otiai10/copy v1.14.0
 	github.com/prometheus/client_golang v1.16.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.7.0
@@ -56,6 +57,7 @@ require (
 	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/subosito/gotenv v1.4.2 // indirect
 	golang.org/x/crypto v0.10.0 // indirect
+	golang.org/x/sync v0.3.0 // indirect
 	golang.org/x/sys v0.9.0 // indirect
 	golang.org/x/text v0.10.0 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect

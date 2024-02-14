@@ -70,6 +70,13 @@ func (mh ModelHandler) addRoutes() []api.Route {
 			mh.create,
 		},
 		{
+			"importModel",
+			http.MethodPost,
+			"/import",
+			false,
+			mh.importModel,
+		},
+		{
 			"corsPreflight",
 			http.MethodOptions,
 			"/",
@@ -255,6 +262,33 @@ func (mh ModelHandler) create(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode("{'status': 'ok'}")
+}
+
+/*
+POST /model/import [Model{}] (201, 400, 500) -- adds a model
+*/
+func (mh ModelHandler) importModel(w http.ResponseWriter, r *http.Request) {
+	var model = types.Model{}
+	err := json.NewDecoder(r.Body).Decode(&model)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if log.GetLevel() == log.DebugLevel {
+		fmt.Println(model.Json())
+	}
+
+	id, err := mh.Service.(ModelServiceIface).ImportModel(model)
+	if err != nil {
+		log.Error(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	w.Header().Set("x-powered-by", "bacon")
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	resBody := fmt.Sprintf("{'status': 'ok', 'id': %v}", id)
+	json.NewEncoder(w).Encode(resBody)
 }
 
 /*

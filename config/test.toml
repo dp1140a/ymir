@@ -1,0 +1,34 @@
+printConfig = false
+
+[logging]
+logFile = "/var/log/ymir/ymir.log"
+logLevel="DEBUG"
+stdOut = true
+fileOut = false
+
+[datastore]
+dbFile="testdata/.ymir/ymir.db"
+
+[models]
+uploadsTempDir="testdata/.ymir/uploads/tmp"
+modelsDir="testdata/.ymir/models"
+
+[printers]
+printersDir="testdata/.ymir/printers"
+
+[http]
+hostname = "localhost"
+port = "8081"
+usehttps = false
+TLSMinVersion = "1.2"
+HttpTLSStrictCiphers = false
+TLSCert = "ymir.crt"
+TLSKey = "ymir.key"
+enableCORS = true
+JWTSecret = "abc123"
+
+[http.logging]
+enabled = false
+stdOut = true
+fileOut = false
+logFile = "/var/log/ymir/ymir_http.log"
