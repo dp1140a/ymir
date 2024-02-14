@@ -26,6 +26,10 @@ func buildHTTPFS() http.FileSystem {
 	return http.FS(build)
 }
 
+/*
+*
+https://dev.to/aryaprakasa/serving-single-page-application-in-a-single-binary-file-with-go-12ij#embed-the-static-files
+*/
 func HandleSPA() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		buildPath := "build"
