@@ -1,42 +1,23 @@
-<script>
-	import { T, Canvas } from '@threlte/core';
-
-	import { OrbitControls } from '@threlte/extras';
-
-	import { MeshStandardMaterial } from 'three';
-
+<script lang="ts">
+	import {Canvas} from '@threlte/core';
+	import Model from './Model.svelte';
+	import { onMount } from 'svelte';
+	let w:number;
+	let h:number;
 	export let data;
-	const maxDistance = 200;
-	const minDistance = 10;
 
-	let ctx;
-	$: console.log(ctx);
+	let canvas:HTMLDivElement
+	onMount(() => {
+		let svBB = document.getElementById("stlViewer").getBoundingClientRect()
+		console.log(svBB)
+		w=Math.round(svBB.width *.6)
+		h= Math.round(svBB.height *.6)
+		console.log(h)
+	});
 </script>
 
-<div>
-	<Canvas bind:ctx>
-		<T.PerspectiveCamera
-			makeDefault
-			position={[10, 10, 50]}
-			on:create={({ ref }) => {
-				ref.lookAt(0, 1, 0);
-			}}
-		>
-			<OrbitControls enableDamping {maxDistance} {minDistance} />
-		</T.PerspectiveCamera>
-
-		<T.DirectionalLight position={[1, 10, 1]} intesity={'.5'} />
-		<T.HemisphereLight color={[0, 255, 0]} intensity={0.5} />
-		<T.Mesh geometry={data.stlModel} material={new MeshStandardMaterial({ color: '#953620' })} />
+<div class="justify-center content-center mx-32 w-full" style="height:80vh;" id="stlViewer">
+	<Canvas size={{ width: w, height: h }}>
+		<Model geometry={data.model} />
 	</Canvas>
 </div>
-
-<style>
-	div {
-		position: fixed;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-	}
-</style>

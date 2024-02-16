@@ -23,6 +23,7 @@
 	//let ready = undefined;
 
 	function fitAndCenter() {
+		console.log(typeof geometry)
 		let middle = new Vector3();
 		geometry.computeBoundingBox();
 		geometry.boundingBox.getCenter(middle);

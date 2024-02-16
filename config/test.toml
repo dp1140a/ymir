@@ -1,7 +1,7 @@
 printConfig = false
 
 [logging]
-logFile = "/var/log/ymir/ymir.log"
+logFile = "testdata/.ymir/log/ymir.log"
 logLevel="DEBUG"
 stdOut = true
 fileOut = false
@@ -31,4 +31,4 @@ JWTSecret = "abc123"
 enabled = false
 stdOut = true
 fileOut = false
-logFile = "/var/log/ymir/ymir_http.log"
+logFile = "testdata/.ymir/log/ymir_http.log"
