@@ -4,27 +4,23 @@
 	import { onMount } from 'svelte';
 	import { getModalStore } from '@skeletonlabs/skeleton';
 	export let geometry;
+	export let parent
+	console.log("Parent: ", parent)
 	let w:number;
 	let h:number;
 	let modalStore = getModalStore();
-
-
-
-
-	$: console.log(canvas)
-	let canvas:HTMLDivElement
 	onMount(() => {
 		let svBB = document.getElementById("stlViewer").getBoundingClientRect()
-		console.log(svBB)
+		let shBB = document.getElementById("stlHeader").getBoundingClientRect()
+		console.log(svBB, "/", shBB)
 		w=svBB.width
-		h= Math.round(svBB.height *.8)
+		h= Math.round(Math.round(svBB.height)-(shBB.height+2))
 		console.log(h)
 	});
 </script>
 
-<div class="modalContainer mx-32 w-full" style="height:80vh;" id="stlViewer">
-	<div class="position-fixed z-50 h-48 w-full">
-		<p>size: {w}px x {h}px</p>
+<div class="modalContainer mx-32 w-full overflow-hidden" style="height:90vh;" id="stlViewer">
+	<div class="position-fixed z-50 h-32 w-full" id="stlHeader">
 		<div class="variant-ghost-error float-left m-8 max-w-fit rounded-md p-4 text-sm drop-shadow-md">
 			<div>
 				<span><i class="fa-regular fa-rotate"></i></span>
@@ -51,7 +47,7 @@
 		</div>
 	</div>
 		<!-- <slot>No model specified</slot> -->
-		<STLViewer {geometry} width={w} height={h} class="border-black border"/>
+	<STLViewer {geometry} width={w} height={h}/>
 </div>
 
 <style>
