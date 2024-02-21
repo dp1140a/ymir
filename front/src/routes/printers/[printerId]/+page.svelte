@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { type ModalSettings, getModalStore } from '@skeletonlabs/skeleton';
 	import RadialGauge from '$lib/RadialGauge.svelte';
-	import { GetPrinterFiles, CheckPrinterStatus, type PrinterStatus } from '$lib/Printer';
+	import { GetPrinterFiles, CheckPrinterStatus, type PrinterStatus, type Printer } from '$lib/Printer';
 	import { GetPrinterJob, type JobInformation } from '$lib/Job';
 	import { _apiUrl, handleError, SecondsPrettyPrint } from '$lib/Utils.js';
 	import { goto, invalidateAll } from '$app/navigation';
 
 	export let data;
 	const modalStore = getModalStore();
-	let printer = data.printer;
+	let printer:Printer = data.printer;
 	let online = data.status.online;
 	let printerStatus: PrinterStatus = data.status.printerStatus;
 
@@ -300,14 +300,14 @@
 	 * updatePrinter
 	 */
 	const updatePrinter = async () => {
-		//console.log(model)
+		let body = JSON.stringify(printer)
 		await fetch(_apiUrl(`/v1/printer/${printer._id}`), {
 			method: 'PUT',
 			headers: {
 				Accept: 'application/json',
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify(printer)
+			body: body
 		})
 			.then(handleError) // skips to .catch if error is thrown
 			.then((response) => {
@@ -422,7 +422,6 @@
 					name="autoConnect"
 					bind:checked={printer.autoConnect}
 					on:input={needsSave}
-					bind:value={printer.autoConnect}
 				/>
 			</div>
 			<div class="">

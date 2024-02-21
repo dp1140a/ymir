@@ -383,7 +383,8 @@ func (ms ModelService) AddNote(model types.Model) (err error) {
 }
 
 func (ms ModelService) GetGCodeMetaData(path string) (gcode.GCodeMetaData, error) {
-	g := gcode.NewGCode(path)
+	g := gcode.NewGCode(filepath.Join(ms.config.ModelsDir, path))
+	fmt.Println(path)
 	err := g.ParseGCode(false)
 	if err != nil {
 		log.Error(err)
