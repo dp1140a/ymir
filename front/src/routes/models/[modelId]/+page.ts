@@ -30,7 +30,7 @@ export const load = async ({ fetch, params }) => {
 	 * Fetch STL thumbnails as Base64 strings and attach to modelFile
 	 */
 	for (let i = 0; i < model.modelFiles.length; i++) {
-		if (model.modelFiles[i].path.split('.').pop() === 'stl') {
+		if (model.modelFiles[i].path.split('.').pop().toLowerCase() === 'stl') {
 			//console.log(model.modelFiles[i]);
 			model.modelFiles[i]['thumbnail'] = await _getSTLThumbnail(
 				model.modelFiles[i],
